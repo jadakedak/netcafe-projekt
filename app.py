@@ -78,7 +78,6 @@ def api_register():
 # DEBUG ENDPOINTS
 @app.route("/api/test", methods=["GET"])
 def api_test():
-    # here i will list all users in the database along with their parameters
     users = User.query.all()
     user_list = []
     for user in users:
