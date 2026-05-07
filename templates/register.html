@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bruger Registrering</title>
+    <link rel="stylesheet" href="../static/css/register.css">
+</head>
+<body>
+    <button id="test">test</button>
+    
+    <div class="form-container">
+        <h1>Opret konto</h1>
+
+        <form id="registerForm">
+            <div class="name-row">
+                <div class="form-group">
+                    <label for="fornavn">Fornavn</label>
+                    <input
+                        type="text"
+                        id="fornavn"
+                        name="fornavn"
+                        placeholder="Anders"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="efternavn">Efternavn</label>
+                    <input
+                        type="text"
+                        id="efternavn"
+                        name="efternavn"
+                        placeholder="Andersen"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="anders@eksempel.dk"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="brugernavn">Brugernavn</label>
+                <input
+                    type="text"
+                    id="brugernavn"
+                    name="brugernavn"
+                    placeholder="anders123"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="adgangskode">Adgangskode</label>
+                <input
+                    type="password"
+                    id="adgangskode"
+                    name="adgangskode"
+                    placeholder="Mindst 8 tegn"
+                    minlength="8"
+                    required
+                >
+            </div>
+
+            <button id="btn-submit">Registrer dig</button>
+        </form>
+
+        <p class="login-link">Har du allerede en konto? <a href="#">Log ind</a></p>
+    </div>
+
+    <script src="/static/js/register.js"></script>
+</body>
+</html>
