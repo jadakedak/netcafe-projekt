@@ -1,1 +1,1 @@
-Dette er netcafe projektet
+HUSK: download visual studio code extension: "SQLite Viewer"
