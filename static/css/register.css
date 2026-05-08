@@ -104,3 +104,72 @@ input::placeholder {
 .login-link a:hover {
     text-decoration: underline;
 }
+
+#success-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#success-overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#success-box {
+    background-color: #ffffff;
+    padding: 48px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    max-width: 380px;
+    width: 100%;
+}
+
+#success-icon {
+    width: 60px;
+    height: 60px;
+    background-color: #4f46e5;
+    color: white;
+    font-size: 1.8rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+#success-box h2 {
+    color: #1a1a2e;
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+}
+
+#success-box p {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin-bottom: 28px;
+}
+
+#success-btn {
+    display: inline-block;
+    padding: 12px 32px;
+    background-color: #4f46e5;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+}
+
+#success-btn:hover {
+    background-color: #4338ca;
+}

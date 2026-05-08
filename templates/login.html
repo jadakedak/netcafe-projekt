@@ -12,33 +12,32 @@
 
         <form id="loginForm">
             <div class="form-group">
-                    <label for="brugernavn">Brugernavn</label>
-                    <input
-                        type="text"
-                        id="brugernavn"
-                        name="brugernavn"
-                        placeholder="anders123"
-                        required
-                    >
-                </div>
-                <div class="form-group">
-                    <label for="adgangskode">Adgangskode</label>
-                    <input
-                        type="password"
-                        id="adgangskode"
-                        name="adgangskode"
-                        placeholder="Mindst 8 tegn"
-                        required
-                    >
-                </div>
+                <label for="brugernavn">Brugernavn</label>
+                <input
+                    type="text"
+                    id="brugernavn"
+                    name="brugernavn"
+                    placeholder="anders123"
+                    required
+                >
+            </div>
+            <div class="form-group">
+                <label for="adgangskode">Adgangskode</label>
+                <input
+                    type="password"
+                    id="adgangskode"
+                    name="adgangskode"
+                    placeholder="Mindst 8 tegn"
+                    required
+                >
             </div>
 
-            <button id="btn-submit">Registrer dig</button>
+            <button id="btn-submit">Login</button>
         </form>
 
-        <p class="login-link">Har du allerede en konto? <a href="#">Log ind</a></p>
+        <p class="register-link">Har du ikke en konto? <a href="/register">Registrer dig</a></p>
     </div>
 
-    <script src="../static/js/login.js"></script>
+    <script src="/static/js/login.js"></script>
 </body>
 </html>

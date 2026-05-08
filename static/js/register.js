@@ -38,27 +38,36 @@ async function SendUserRegistration(){
         password: password
     }
 
-    const response = await fetch("http://localhost:5000/api/register", {
+    const response = await fetch("/api/register", {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify(data)
     })
     const result = await response.json();
-    
+
     if(result.message === "User registered successfully"){
-        window.location.href = "/login";
+        document.getElementById("success-overlay").classList.add("visible");
+        setTimeout(() => {
+            window.location.href = "/login";
+        }, 2500);
+    }else{
+        alert("Registration failed: " + result.message);
     }
 }
 
+/*
 document.getElementById("test").addEventListener("click", async () => {
     const response = await fetch("http://localhost:5000/api/test");
     const users = await response.json();
     console.log(users);
 })
+*/
 
-document.getElementById("btn-submit").addEventListener("click", async () => {
+document.getElementById("btn-submit").addEventListener("click", async (e) => {
+    e.preventDefault();
     if(validateRegistrationForm()){
         await SendUserRegistration();
     }

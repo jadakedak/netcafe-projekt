@@ -4,13 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bruger Registrering</title>
-    <link rel="stylesheet" href="../static/css/register.css">
+    <link rel="stylesheet" href="/static/css/register.css">
 </head>
 <body>
-    <button id="test">test</button>
-    
+    <div id="success-overlay">
+        <div id="success-box">
+            <div id="success-icon">✓</div>
+            <h2>Konto oprettet!</h2>
+            <p>Din konto er blevet oprettet. Du kan nu logge ind.</p>
+        </div>
+    </div>
     <div class="form-container">
         <h1>Opret konto</h1>
+
 
         <form id="registerForm">
             <div class="name-row">
@@ -73,7 +79,7 @@
             <button id="btn-submit">Registrer dig</button>
         </form>
 
-        <p class="login-link">Har du allerede en konto? <a href="#">Log ind</a></p>
+        <p class="login-link">Har du allerede en konto? <a href="/login">Log ind</a></p>
     </div>
 
     <script src="/static/js/register.js"></script>

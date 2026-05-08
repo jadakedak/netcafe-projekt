@@ -6,8 +6,16 @@
     <title>Index side</title>
 </head>
 <body>
-    
+    <div class="header">
+        <h1>Den Netcafé</h1>
+        <br>
+        <a href="/{{ userid }}/profile">Profile</a>
+        <a href="/{{ userid }}/menu">Menu</a>
+        {% if is_admin %}
+        <a id="admin-panel-link" href="/{{ userid }}/admin">Admin Panel</a>
+        {% endif %}
+    </div>
 
-    <script src="../static/js/index.js"></script>
+    <script src="/static/js/index.js"></script>
 </body>
 </html>

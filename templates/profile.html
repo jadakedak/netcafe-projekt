@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ user.fornavn }}'s Profile</h1>
+    </div>
+
+    <div class="profile-info">
+        <p><strong>Username:</strong> {{ user.brugernavn }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>First Name:</strong> {{ user.fornavn }}</p>
+        <p><strong>Last Name:</strong> {{ user.efternavn }}</p>
+    </div>
+
+    <script>
+        const userId = "{{ user.userid }}";
+    </script>
+    <script src="/static/js/profile.js"></script>
+</body>
+</html>
