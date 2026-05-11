@@ -23,6 +23,7 @@ CORS(app)
 
 socketio = fsock.SocketIO(app, cors_allowed_origins="*")
 db = SQLAlchemy(app)
+edit_mode = False
 
 class User(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
@@ -323,6 +324,26 @@ def api_get_menu_item(item_id):
         "billede_sti": item.billede_sti
     }, 200
 
+@app.route("/api/menu/items/edit/<item_id>", methods=["PUT"])
+def api_edit_menu_item(item_id):
+    if not 'user_id' in session:
+        return {"message": "Unauthorized"}, 401
+    if not User.query.filter_by(userid=session['user_id']).first().admin:
+        return {"message": "Unauthorized"}, 401
+
+    data = request.get_json()
+    print(data)
+    item = Menuitem.query.filter_by(item_id=item_id).first()
+    if not item:
+        return {"success": False, "message": "Menu item not found"}, 404
+
+    item.navn = data["navn"]
+    item.beskrivelse = data["beskrivelse"]
+    item.pris = data["pris"]
+    item.billede_sti = data["billede_sti"]
+
+    db.session.commit()
+    return {"success": True, "message": "Menu item updated successfully"}, 200
 
 # DEBUG ENDPOINTS
 @app.route("/api/test", methods=["GET"])

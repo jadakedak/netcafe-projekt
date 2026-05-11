@@ -174,7 +174,7 @@ body {
     background: #6d28d9;
 }
 
-#menu_item_form {
+.modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
@@ -213,7 +213,8 @@ body {
     letter-spacing: 0;
 }
 
-#close-form-button {
+#close-form-button,
+#close-edit-form-button {
     background: none;
     border: none;
     color: #6b7280;
@@ -225,17 +226,20 @@ body {
     transition: color 0.15s, background 0.15s;
 }
 
-#close-form-button:hover {
+#close-form-button:hover,
+#close-edit-form-button:hover {
     color: #ffffff;
     background: #2a2a2a;
 }
 
-#close-form-button svg {
+#close-form-button svg,
+#close-edit-form-button svg {
     width: 18px;
     height: 18px;
 }
 
-#add-menu-item-form {
+#add-menu-item-form,
+#edit-menu-item-form {
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -284,7 +288,8 @@ body {
     min-height: 80px;
 }
 
-#submit-menu-item {
+#submit-menu-item,
+#submit-edit-menu-item {
     width: 100%;
     background: #7c3aed;
     color: #ffffff;
@@ -298,7 +303,8 @@ body {
     margin-top: 4px;
 }
 
-#submit-menu-item:hover {
+#submit-menu-item:hover,
+#submit-edit-menu-item:hover {
     background: #6d28d9;
 }
 
@@ -363,6 +369,30 @@ body {
     font-weight: 700;
     color: #a78bfa;
     margin-top: 2px;
+}
+
+.edit-menu-item {
+    background: none;
+    border: none;
+    color: #4b5563;
+    cursor: pointer;
+    padding: 7px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+}
+
+.edit-menu-item svg {
+    width: 16px;
+    height: 16px;
+}
+
+.edit-menu-item:hover {
+    background: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
 }
 
 .remove-menu-item {

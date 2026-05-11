@@ -1,7 +1,6 @@
 const user_container = document.getElementById("user_list");
 const admin_container = document.getElementById("admin_user_list");
 
-
 // User admin handling
 async function getUsers(){
     const response = await fetch("/api/users", {
@@ -60,7 +59,12 @@ add_button.addEventListener("click", () => {
 const close_menu_form_button = document.getElementById("close-form-button");
 close_menu_form_button.addEventListener("click", () => {
     menu_form.style.display = "none";
-});
+})
+const close_edit_menu_form = document.getElementById("close-edit-form-button")
+close_edit_menu_form.addEventListener("click", () => {
+    document.getElementById("edit_menu_item_form").style.display = "none"
+})
+    
 
 const submit_menu_item = document.getElementById("submit-menu-item");
 submit_menu_item.addEventListener("click", async (e) => {
@@ -68,19 +72,26 @@ submit_menu_item.addEventListener("click", async (e) => {
     const beskrivelse = document.getElementById("menu-item-description").value;
     const billede_sti = document.getElementById("menu-item-picture").value;
     const pris = document.getElementById("menu-item-price").value;
-        
+
     if(!navn || !beskrivelse || !pris || isNaN(pris)){
         return alert("Navn, beskrivelse og gyldig pris er påkrævet!");
     }
-    
+
+    // adding a new menu item
     const item_details = await addMenuItemDB(navn, beskrivelse, billede_sti, pris);
     const menuItem = createMenuItem(item_details["item_id"], navn, beskrivelse, billede_sti, pris);
-
+    
     document.getElementById("menu_list").appendChild(menuItem);
     menu_form.style.display = "none";
 });
+const submit_edit_menu_item = document.getElementById("submit-edit-menu-item")
+submit_edit_menu_item.addEventListener("click", async (e) => {
+    const id = document.getElementById("edit-item-id").value
+    editMenuItem(id)
+    document.getElementById("edit_menu_item_form").style.display = "none"
+})
 
-
+// creates the menu item container along with the elements
 function createMenuItem(item_id, navn, beskrivelse, billede_sti, pris){
     const item_container = document.createElement("div")
     item_container.classList.add("menu-item-container")
@@ -92,6 +103,13 @@ function createMenuItem(item_id, navn, beskrivelse, billede_sti, pris){
     remove_button.addEventListener("click", () => {
         removeMenuItem(item_id);
         removeMenuItemDB(item_id);
+    });
+
+    const edit_button = document.createElement("button")
+    edit_button.classList.add("edit-menu-item")
+    edit_button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`
+    edit_button.addEventListener("click", () => {
+        open_edit_menu(item_id);
     });
 
     const picture = document.createElement("img")
@@ -119,9 +137,11 @@ function createMenuItem(item_id, navn, beskrivelse, billede_sti, pris){
     details.appendChild(price_label)
     item_container.appendChild(picture)
     item_container.appendChild(details)
+    item_container.appendChild(edit_button)
     item_container.appendChild(remove_button)
     return item_container
 }
+// removes the menu item container
 function removeMenuItem(item_id){
     const item_element = document.getElementById(`menu-item-${item_id}`);
     if(item_element){
@@ -162,6 +182,63 @@ async function removeMenuItemDB(item_id) {
     return data;
 }
 
+async function open_edit_menu(item_id){
+    const id = document.getElementById("edit-item-id")
+    const navn = document.getElementById("edit-item-name")
+    const description = document.getElementById("edit-item-description")
+    const picture_path = document.getElementById("edit-item-picture")
+    const price = document.getElementById("edit-item-price")
+
+    const response = await fetch(`/api/menu/items/get/${item_id}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+    })
+    const data = await response.json()
+
+    id.value = item_id
+    navn.value = data["navn"]
+    description.textContent = data["beskrivelse"]
+    picture_path.value = data["billede_sti"]
+    price.value = data["pris"]
+
+    document.getElementById("edit_menu_item_form").style.display = "flex"
+}
+async function editMenuItem(item_id){
+    const navn = document.getElementById("edit-item-name")
+    const description = document.getElementById("edit-item-description")
+    const picture_path = document.getElementById("edit-item-picture")
+    const price = document.getElementById("edit-item-price")
+
+    // edit an existing menu item
+    const response = await fetch(`/api/menu/items/edit/${item_id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            navn: navn.value,
+            beskrivelse: description.textContent,
+            billede_sti: picture_path.value,
+            pris: price.value
+        })
+    });
+    const data = await response.json();
+    if (!data.success){
+        alert("Failed to edit menu item: " + data.message);
+    }
+    const updatedItem = createMenuItem(item_id, navn.value, description.textContent, picture_path.value, price.value);
+    const oldItem = document.getElementById(`menu-item-${item_id}`);
+    if(updatedItem && oldItem && updatedItem !== oldItem){
+        oldItem.replaceWith(updatedItem);
+        alert("Menu item updated successfully!");
+        return;
+    }
+    alert("Failed to update menu item in UI.");
+}
+
 async function displayMenuItems(){
     const response = await fetch("/api/menu/items", {
         method: "GET",
@@ -177,7 +254,6 @@ async function displayMenuItems(){
         menu_list.appendChild(menuItem);
     });
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
     displayMenuItems();
