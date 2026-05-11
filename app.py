@@ -36,6 +36,7 @@ class User(db.Model):
 
 class Menuitem(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
+    item_id     = db.Column(db.String(50), unique=True, nullable=False)
     navn        = db.Column(db.String(100), nullable=False)
     beskrivelse = db.Column(db.String(500), nullable=False)
     billede_sti = db.Column(db.String(200), nullable=True)  # URL til billede (kunne være på fil server)
@@ -107,12 +108,6 @@ def clear_users():
 
 
 # MENUITEM FUNCTIONS
-def add_menuitem(navn, beskrivelse, pris):
-    new_item = Menuitem(navn=navn, beskrivelse=beskrivelse, pris=pris)
-    db.session.add(new_item)
-    db.session.commit()
-    return new_item
-
 def remove_menuitem(item_id):
     item = Menuitem.query.get(item_id)
     if item:
@@ -136,6 +131,7 @@ def me():
 def api_logout():
     session.clear()
     return {"success": True}, 200
+
 
 # ENDPOINTS
 @app.route("/<userid>/home", methods=["GET"])
@@ -170,6 +166,8 @@ def register():
 def login():
     return render_template("login.html")
 
+
+# USER API ENDPOINTS
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json()
@@ -251,6 +249,80 @@ def api_profileinfo():
     if not user:
         return {"message": "User not found"}, 404
     return user, 200
+
+
+# MENU API ENDPOINTS
+@app.route("/api/menu/items", methods=["GET"])
+def api_menu_items():
+    if not 'user_id' in session:
+        return {"message": "Unauthorized"}, 401
+
+    items = Menuitem.query.all()
+    item_list = []
+    for item in items:
+        item_list.append({
+            "id": item.item_id,
+            "navn": item.navn,
+            "beskrivelse": item.beskrivelse,
+            "pris": item.pris,
+            "billede_sti": item.billede_sti
+        })
+    return {"items": item_list}, 200
+
+# ADMIN ONLY
+@app.route("/api/menu/items/add", methods=["POST"])
+def api_add_menu_item():
+    if not 'user_id' in session:
+        return {"message": "Unauthorized"}, 401
+    if not User.query.filter_by(userid=session['user_id']).first().admin:
+        return {"message": "Unauthorized"}, 401
+
+    data = request.get_json()
+    item_id = str(uuid4())  # Generate a unique item ID
+    navn = data.get("navn")
+    beskrivelse = data.get("beskrivelse")
+    pris = data.get("pris")
+    billede_sti = data.get("billede_sti")
+    
+    new_item = Menuitem(navn=navn, item_id=item_id, beskrivelse=beskrivelse, pris=pris, billede_sti=billede_sti)
+    db.session.add(new_item)
+    db.session.commit()
+
+    return {"success": True, "message": "Menu item added successfully", "item_id": item_id}, 201
+
+@app.route("/api/menu/items/remove/<item_id>", methods=["DELETE"])
+def api_remove_menu_item(item_id):
+    if not 'user_id' in session:
+        return {"message": "Unauthorized"}, 401
+    if not User.query.filter_by(userid=session['user_id']).first().admin:
+        return {"message": "Unauthorized"}, 401
+
+    item = Menuitem.query.filter_by(item_id=item_id).first()
+    if not item:
+        return {"message": "Menu item not found"}, 404
+
+    db.session.delete(item)
+    db.session.commit()
+
+    return {"success": True, "message": "Menu item removed successfully"}, 200
+
+@app.route("/api/menu/items/get/<item_id>", methods=["GET"])
+def api_get_menu_item(item_id):
+    if not 'user_id' in session:
+        return {"message": "Unauthorized"}, 401
+
+    item = Menuitem.query.filter_by(item_id=item_id).first()
+    if not item:
+        return {"message": "Menu item not found"}, 404
+
+    return {
+        "id": item.item_id,
+        "navn": item.navn,
+        "beskrivelse": item.beskrivelse,
+        "pris": item.pris,
+        "billede_sti": item.billede_sti
+    }, 200
+
 
 # DEBUG ENDPOINTS
 @app.route("/api/test", methods=["GET"])
