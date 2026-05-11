@@ -35,9 +35,10 @@ class User(db.Model):
     adgangskode = db.Column(db.String(200), nullable=False)
 
 class Menuitem(db.Model):
-    id         = db.Column(db.Integer, primary_key=True)
+    id          = db.Column(db.Integer, primary_key=True)
     navn        = db.Column(db.String(100), nullable=False)
-    beskrivelse  = db.Column(db.String(500), nullable=False)
+    beskrivelse = db.Column(db.String(500), nullable=False)
+    billede_sti = db.Column(db.String(200), nullable=True)  # URL til billede (kunne være på fil server)
     pris        = db.Column(db.Float, nullable=False)
 
 class Computer(db.Model):
@@ -145,6 +146,14 @@ def home(userid):
         is_admin = user.admin if user else False
     return render_template("index.html", userid=userid, is_admin=is_admin)
 
+@app.route("/<userid>/admin", methods=["GET"])
+def admin(userid):
+    user = User.query.filter_by(userid=userid).first()
+    if not user or not user.admin:
+        flash("Unauthorized access", "danger")
+        return redirect(url_for("home", userid=userid))
+    return render_template("admin.html", userid=userid)
+
 @app.route("/<userid>/profile", methods=["GET"])
 def profile(userid):
     user = User.query.filter_by(userid=userid).first()
@@ -194,7 +203,6 @@ def api_login():
         return {"success": True, "user_id": user.userid}, 200
     return {"message": "Invalid username or password"}, 401
 
-
 @app.route("/api/usercreds/<userid>", methods=["GET"])
 def api_usercreds(userid):
     if 'user_id' in session:
@@ -209,6 +217,29 @@ def api_usercreds(userid):
         return {"message": "User not found"}, 404
     return user, 200
 
+@app.route("/api/users", methods=["GET"])
+def api_users():
+    if 'user_id' in session:
+        admin_check = User.query.filter_by(userid=session['user_id']).first()
+        if admin_check.admin == False:
+            return {"message": "Unauthorized"}, 401
+    else:
+        return {"message": "Unauthorized"}, 401
+    
+    users = User.query.all()
+    user_list = []
+    for user in users:
+        user_list.append({
+            "id": user.id,
+            "fornavn": user.fornavn,
+            "is_admin": user.admin,
+            "efternavn": user.efternavn,
+            "email": user.email,
+            "brugernavn": user.brugernavn,
+            "adgangskode": user.adgangskode
+        })
+    return {"users": user_list}, 200
+
 @app.route("/api/profileinfo", methods=["GET"])
 def api_profileinfo():    
     if not 'user_id' in session:
@@ -216,7 +247,6 @@ def api_profileinfo():
     
     data = request.get_json()
     userid = data.get("userid")    
-    
     user = User.query.filter_by(userid=userid).first()
     if not user:
         return {"message": "User not found"}, 404

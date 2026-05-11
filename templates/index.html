@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Index side</title>
+    <link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body>
-    <div class="header">
-        <h1>Den Netcafé</h1>
-        <br>
-        <a href="/{{ userid }}/profile">Profile</a>
-        <a href="/{{ userid }}/menu">Menu</a>
+    <div class="topbar">
         {% if is_admin %}
         <a id="admin-panel-link" href="/{{ userid }}/admin">Admin Panel</a>
         {% endif %}
+        <h1>Den Netcafé</h1>
+        <a href="/{{ userid }}/menu">Menu</a>
+        <a href="/{{ userid }}/profile">Profile</a>
     </div>
 
     <script src="/static/js/index.js"></script>

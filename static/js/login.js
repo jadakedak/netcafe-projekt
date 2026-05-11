@@ -1,10 +1,7 @@
 const login_button = document.getElementById("btn-submit");
 
-
 login_button.addEventListener("click", async (e) => {
-    e.preventDefault();
-
-    const brugernavn = document.getElementById("brugernavn").value;
+    const brugernavn = document.getElementById("brugernavn").value.toLowerCase();
     const adgangskode = document.getElementById("adgangskode").value;
 
     if(brugernavn && adgangskode) {
@@ -14,7 +11,7 @@ login_button.addEventListener("click", async (e) => {
         return;
     }
 
-    try {
+    try {   
         const response = await fetch("/api/login", {
             method: "POST",
             credentials: "include",
