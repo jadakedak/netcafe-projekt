@@ -35,7 +35,8 @@ async function SendUserRegistration(){
         efternavn: efternavn,
         email: email,
         username: username,
-        password: password
+        password: password,
+        credits: 0
     }
 
     const response = await fetch("/api/register", {

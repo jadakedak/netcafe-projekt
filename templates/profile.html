@@ -16,7 +16,10 @@
         <p><strong>Email:</strong> {{ user.email }}</p>
         <p><strong>First Name:</strong> {{ user.fornavn }}</p>
         <p><strong>Last Name:</strong> {{ user.efternavn }}</p>
+        <p><strong>credits:</strong>{{ user.credits }}</p>
     </div>
+
+    <div class="transaction-history"></div>
 
     <script>
         const userId = "{{ user.userid }}";

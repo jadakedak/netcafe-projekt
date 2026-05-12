@@ -34,6 +34,7 @@ class User(db.Model):
     email       = db.Column(db.String(120), unique=True, nullable=False)
     brugernavn  = db.Column(db.String(50), unique=True, nullable=False)
     adgangskode = db.Column(db.String(200), nullable=False)
+    credits     = db.Column(db.Integer, nullable=False)
 
 class Menuitem(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
@@ -120,7 +121,6 @@ def remove_menuitem(item_id):
 def get_menuitems():
     return Menuitem.query.all()
 
-
 # this is for checking if the user is logged in on the frontend, can be used to conditionally render elements based on login status
 @app.route('/api/me')
 def me():
@@ -133,14 +133,20 @@ def api_logout():
     session.clear()
     return {"success": True}, 200
 
+@app.route("/", methods=["GET"])
+def landing_page():
+    session.clear()
+    return {"message": "session is cleared!"}
 
 # ENDPOINTS
 @app.route("/<userid>/home", methods=["GET"])
 def home(userid):
     is_admin = False
-    if 'user_id' in session:
-        user = User.query.filter_by(userid=userid).first()
-        is_admin = user.admin if user else False
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    
+    user = User.query.filter_by(userid=userid).first()
+    is_admin = user.admin if user else False
     return render_template("index.html", userid=userid, is_admin=is_admin)
 
 @app.route("/<userid>/admin", methods=["GET"])
@@ -159,6 +165,18 @@ def profile(userid):
         return redirect(url_for("home", userid=userid))
     return render_template("profile.html", user=user)
 
+@app.route("/<userid>/creditshop", methods=["GET"])
+def creditshop(userid):
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    return render_template("/creditshop.html", userid=userid)
+
+@app.route("/<userid>/menu", methods=["GET"])
+def menu(userid):
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    return render_template("menu.html", userid=userid)
+
 @app.route("/register", methods=["GET"])
 def register():
     return render_template("register.html")
@@ -166,6 +184,7 @@ def register():
 @app.route("/login", methods=["GET"])
 def login():
     return render_template("login.html")
+
 
 
 # USER API ENDPOINTS
@@ -186,6 +205,7 @@ def api_register():
         brugernavn=data["username"],
         adgangskode=data["password"],  # hash with bcrypt before production
         userid=str(uuid4()),  # Generate a unique user ID
+        credits=data["credits"]
     )
     db.session.add(new_user)
     db.session.commit()
@@ -202,19 +222,18 @@ def api_login():
         return {"success": True, "user_id": user.userid}, 200
     return {"message": "Invalid username or password"}, 401
 
-@app.route("/api/usercreds/<userid>", methods=["GET"])
-def api_usercreds(userid):
-    if 'user_id' in session:
-        admin_check = User.query.filter_by(userid=session['user_id']).first()
-        if admin_check.admin == False:
-            return {"message": "Unauthorized"}, 401
-    else:
-        return {"message": "Unauthorized"}, 401
-    
-    user = User.query.filter_by(userid=userid).first()
-    if not user:
-        return {"message": "User not found"}, 404
-    return user, 200
+@app.route("/api/buy/credits", methods=["POST"])
+def buy_credits():
+    data = request.get_json()
+    try:
+        amount = int(data.get("amount"))
+        user = User.query.filter_by(userid=session['user_id']).first()
+        user.credits += amount
+
+        db.session.commit()
+        return {"success": True, "message": f"successfully bought {amount} credits!"}, 200
+    except Exception as e:
+        return {"success": False, "message": str(e)}, 500
 
 @app.route("/api/users", methods=["GET"])
 def api_users():
@@ -270,6 +289,66 @@ def api_menu_items():
         })
     return {"items": item_list}, 200
 
+@app.route("/api/menu/add_cart/<itemid>", methods=["PUT"])
+def add_cart(itemid):
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    try:
+        cart = session.get("cart", {})
+        cart[itemid] = cart.get(itemid, 0) + 1
+        session["cart"] = cart
+        session.modified = True
+        return {"success": True, "message": "item added to cart!", "quantity": cart[itemid]}, 200
+    except Exception as e:
+        return {"success": False, "message": str(e)}, 500
+
+@app.route("/api/menu/items/get", methods=["GET"])
+def api_get_menu_items():
+    if not 'user_id' in session:
+        return {"message": "Unauthorized"}, 401
+    
+    data = request.get_json()
+    item_list = []
+    for itemid in data["items"]:
+        item = Menuitem.query.filter_by(item_id=itemid).first()
+        item_list.append({
+            "id": itemid,
+            "navn": item.navn,
+            "beskrivelse": item.beskrivelse,
+            "pris": item.pris,
+            "billede_sti": item.billede_sti
+        })
+    return item_list
+    
+@app.route("/api/menu/item/get/<item_id>", methods=["GET"])
+def api_get_menu_item(item_id):
+    if not 'user_id' in session:
+        return {"message": "Unauthorized"}, 401
+
+    item = Menuitem.query.filter_by(item_id=item_id).first()
+    if not item:
+        return {"message": "Menu item not found"}, 404
+    
+    return {
+        "id": item.item_id,
+        "navn": item.navn,
+        "beskrivelse": item.beskrivelse,
+        "pris": item.pris,
+        "billede_sti": item.billede_sti
+    }, 200
+
+@app.route("/api/menu/get_cart", methods=["GET"])
+def get_cart():
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    try:
+        if not session["cart"]:
+            session["cart"] = []
+        return {"success": True, "cart": session["cart"]}
+    except:
+        return {"success": False, "cart": []}
+
+
 # ADMIN ONLY
 @app.route("/api/menu/items/add", methods=["POST"])
 def api_add_menu_item():
@@ -306,23 +385,6 @@ def api_remove_menu_item(item_id):
     db.session.commit()
 
     return {"success": True, "message": "Menu item removed successfully"}, 200
-
-@app.route("/api/menu/items/get/<item_id>", methods=["GET"])
-def api_get_menu_item(item_id):
-    if not 'user_id' in session:
-        return {"message": "Unauthorized"}, 401
-
-    item = Menuitem.query.filter_by(item_id=item_id).first()
-    if not item:
-        return {"message": "Menu item not found"}, 404
-
-    return {
-        "id": item.item_id,
-        "navn": item.navn,
-        "beskrivelse": item.beskrivelse,
-        "pris": item.pris,
-        "billede_sti": item.billede_sti
-    }, 200
 
 @app.route("/api/menu/items/edit/<item_id>", methods=["PUT"])
 def api_edit_menu_item(item_id):

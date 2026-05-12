@@ -116,6 +116,14 @@ function createMenuItem(item_id, navn, beskrivelse, billede_sti, pris){
     picture.classList.add("menu-item-picture")
     picture.src = billede_sti
     picture.alt = navn
+    /* INFORMATION VULNERABILITY: picture.src can be set to whatever url you want
+        LEAKED INFO:
+        IP address of the client
+        User-Agent (browser, OS version)
+        Referer header (what page they were on)
+        Cookies for that domain (if the URL is on the same domain)
+        Timing (confirms the user actually loaded the page)
+    */
 
     const details = document.createElement("div")
     details.classList.add("menu-item-details")
@@ -189,7 +197,7 @@ async function open_edit_menu(item_id){
     const picture_path = document.getElementById("edit-item-picture")
     const price = document.getElementById("edit-item-price")
 
-    const response = await fetch(`/api/menu/items/get/${item_id}`, {
+    const response = await fetch(`/api/menu/item/get/${item_id}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
@@ -220,7 +228,7 @@ async function editMenuItem(item_id){
         },
         body: JSON.stringify({
             navn: navn.value,
-            beskrivelse: description.textContent,
+            beskrivelse: description.value,
             billede_sti: picture_path.value,
             pris: price.value
         })

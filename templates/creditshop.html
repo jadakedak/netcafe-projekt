@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>credit store</title>
+    <link rel="stylesheet" href="/static/css/creditshop.css">
+</head>
+<body>
+    <a id="home-button" href="/{{ userid }}/home">← Home</a>
+    <div id="shop_container">
+        <h2>credit amount:</h2>
+        <input id="credit-amount" type="number" min="5" max="5000" placeholder="1234">
+        <button id="buy-button">pay with mobilepay</button>
+    </div>
+
+    <script>
+        const userId = "{{ userid }}";
+    </script>
+    <script src="/static/js/creditshop.js"></script>
+</body>
+</html>

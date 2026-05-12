@@ -1,0 +1,95 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    background: #0d0d0d;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#home-button {
+    position: fixed;
+    top: 20px;
+    left: 24px;
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding: 7px 14px;
+    border: 1px solid #2a2a2a;
+    border-radius: 7px;
+    background: #1a1a1a;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+#home-button:hover {
+    background: #222222;
+    color: #ffffff;
+    border-color: #7c3aed;
+}
+
+#shop_container {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 36px 40px;
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+#shop_container h2 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6b7280;
+}
+
+#credit-amount {
+    background: #111111;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #f0f0f0;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s;
+}
+
+#credit-amount:focus {
+    border-color: #7c3aed;
+}
+
+#credit-amount::placeholder {
+    color: #4b5563;
+}
+
+#buy-button {
+    width: 100%;
+    background: #7c3aed;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+#buy-button:hover {
+    background: #6d28d9;
+}
