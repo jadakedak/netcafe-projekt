@@ -1,6 +1,10 @@
 let item_counter = 0
 let item_count = document.getElementById("item-count")
 
+document.getElementById("go-to-cart").addEventListener("click", () => {
+    window.location.href = `/${userId}/cart`
+})
+
 // creates the menu item container along with the elements
 function createMenuItem(item_id, navn, beskrivelse, billede_sti, pris){
     const item_container = document.createElement("div")

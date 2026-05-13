@@ -4,6 +4,12 @@
     box-sizing: border-box;
 }
 
+
+#headline {
+    font-family: "Smooch Sans", cursive;
+    font-size: 40px;
+}
+
 body {
     min-height: 100vh;
     background: #0d0d0d;
@@ -54,6 +60,27 @@ body {
     background: #222222;
     color: #ffffff;
     border-color: #7c3aed;
+}
+
+.topbar a[href$="/profile"] {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #ffffff;
+}
+
+.topbar a[href$="/profile"]:hover {
+    background: #6d28d9;
+    border-color: #6d28d9;
+    color: #ffffff;
 }
 
 #admin-panel-link {

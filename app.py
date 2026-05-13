@@ -4,8 +4,7 @@ from flask_cors import CORS
 import flask_socketio as fsock
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from asyncio import run
-from threading import Thread
+from random import randint
 
 ### DOING:
 # - admin panel for user and menu management
@@ -25,6 +24,8 @@ socketio = fsock.SocketIO(app, cors_allowed_origins="*")
 db = SQLAlchemy(app)
 edit_mode = False
 
+CLOUD_SERVER_URL = "http://159.65.92.59:3000"
+
 class User(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
     userid      = db.Column(db.String(50), unique=True, nullable=False)
@@ -35,6 +36,8 @@ class User(db.Model):
     brugernavn  = db.Column(db.String(50), unique=True, nullable=False)
     adgangskode = db.Column(db.String(200), nullable=False)
     credits     = db.Column(db.Integer, nullable=False)
+    transactions = db.relationship("Transactions", foreign_keys="Transactions.user_id", primaryjoin="User.userid == Transactions.user_id")
+
 
 class Menuitem(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
@@ -51,6 +54,15 @@ class Computer(db.Model):
     user            = db.Column(db.String(50), nullable=False)
     connected       = db.Column(db.Boolean, default=True)
     connection_date = db.Column(db.DateTime, nullable=False)
+
+class Transactions(db.Model):
+    id              = db.Column(db.Integer, primary_key=True)
+    user_id         = db.Column(db.String(50), index=True, nullable=False)
+    transaction_id  = db.Column(db.String(50), unique=True, nullable=False)
+    item            = db.Column(db.String(50), nullable=False)
+    amount          = db.Column(db.Integer, nullable=False)
+    total           = db.Column(db.Integer, nullable=True)
+    purchased_at    = db.Column(db.DateTime, nullable=False)
 
 # SOCKET IO ENDPOINTS
 @socketio.on('connect')
@@ -121,6 +133,15 @@ def remove_menuitem(item_id):
 def get_menuitems():
     return Menuitem.query.all()
 
+
+# TRANSACTION FUNCTIONS
+def generate_Tansid(length):
+    id = ""
+    chars = "ABCDEFGHIJKLMNOPQRSTUVXYZ1234567890"
+    for i in range(length):
+        id += chars[randint(0, len(chars) - 1)]
+    return id
+
 # this is for checking if the user is logged in on the frontend, can be used to conditionally render elements based on login status
 @app.route('/api/me')
 def me():
@@ -177,6 +198,14 @@ def menu(userid):
         return redirect(url_for("login"))
     return render_template("menu.html", userid=userid)
 
+@app.route("/<userid>/cart", methods=["GET"])
+def cart(userid):
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    if not session.get("cart"):
+        session["cart"] = {}
+    return render_template("/cart.html", userid=userid, cart=session["cart"])
+
 @app.route("/register", methods=["GET"])
 def register():
     return render_template("register.html")
@@ -186,7 +215,6 @@ def login():
     return render_template("login.html")
 
 
-
 # USER API ENDPOINTS
 @app.route("/api/register", methods=["POST"])
 def api_register():
@@ -194,7 +222,6 @@ def api_register():
 
     if User.query.filter_by(email=data["email"]).first():
         return {"message": "Email already in use"}, 409
-
     if User.query.filter_by(brugernavn=data["username"]).first():
         return {"message": "Username already taken"}, 409
 
@@ -222,6 +249,8 @@ def api_login():
         return {"success": True, "user_id": user.userid}, 200
     return {"message": "Invalid username or password"}, 401
 
+
+# BUYING ENDPOINTS
 @app.route("/api/buy/credits", methods=["POST"])
 def buy_credits():
     data = request.get_json()
@@ -234,7 +263,34 @@ def buy_credits():
         return {"success": True, "message": f"successfully bought {amount} credits!"}, 200
     except Exception as e:
         return {"success": False, "message": str(e)}, 500
+    
+@app.route("/api/checkout", methods=["POST"])
+def checkout():
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    data = request.get_json()
 
+    price_total = data.get("price_total")
+    quantity_total = data.get("quantity_total")
+    item = data.get("item")
+    user = User.query.filter_by(userid=session["user_id"]).first()
+
+    if user.credits < price_total:
+        return {"success": False, "message": "Insufficient credits"}
+
+    transid = generate_Tansid(10)
+    user.credits -= price_total
+    session["cart"] = {}
+
+    new_transaction = Transactions(user_id=session["user_id"], transaction_id=transid, item=item, amount=quantity_total, total=price_total, purchased_at=datetime.now())
+    db.session.add(new_transaction)
+    
+    db.session.commit()
+
+    return {"success": True, "message": "Checkout successful"}
+
+    
+    
 @app.route("/api/users", methods=["GET"])
 def api_users():
     if 'user_id' in session:
@@ -271,6 +327,39 @@ def api_profileinfo():
     return user, 200
 
 
+# TRANSACTION ENDPOINTS
+@app.route("/api/transactions/insert", methods=["POST"])
+def insert_transaction():
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    try:
+        data = request.get_json()
+        
+        userid  = session["user_id"]
+        transid = generate_Tansid(10)
+        item    = data.get("item")
+        amount  = data.get("amount")
+        total   = data.get("total")
+        
+        new_transaction = Transactions(user_id=userid, transaction_id=transid, item=item, amount=amount, total=total, purchased_at=datetime.now())
+        db.session.add(new_transaction)
+        db.session.commit()
+        
+        return {"success": True, "message": "transaction has been logged to database!", "transaction_id": transid}
+    except Exception as e:
+        print(e)
+        return {"success": False, "message": "IT FAILED"}
+
+@app.route("/api/transactions/history", methods=["GET"])
+def transaction_history():
+    try:
+        user = User.query.filter_by(userid=session["user_id"]).first()
+        transactions = [{"transaction_id": t.transaction_id, "item": t.item, "amount": t.amount, "total": t.total, "purchased_at": t.purchased_at} for t in user.transactions]
+        return {"success": True, "transactions": transactions}
+    except Exception:
+        return {"success": False, "message": "failed to load transactions!"}
+
+
 # MENU API ENDPOINTS
 @app.route("/api/menu/items", methods=["GET"])
 def api_menu_items():
@@ -302,21 +391,24 @@ def add_cart(itemid):
     except Exception as e:
         return {"success": False, "message": str(e)}, 500
 
-@app.route("/api/menu/items/get", methods=["GET"])
+@app.route("/api/menu/items/get", methods=["POST"])
 def api_get_menu_items():
     if not 'user_id' in session:
         return {"message": "Unauthorized"}, 401
     
     data = request.get_json()
     item_list = []
+    
     for itemid in data["items"]:
+        quantity = data["items"][itemid]
         item = Menuitem.query.filter_by(item_id=itemid).first()
         item_list.append({
             "id": itemid,
             "navn": item.navn,
             "beskrivelse": item.beskrivelse,
             "pris": item.pris,
-            "billede_sti": item.billede_sti
+            "billede_sti": item.billede_sti,
+            "quantity": quantity
         })
     return item_list
     
@@ -342,8 +434,8 @@ def get_cart():
     if not 'user_id' in session:
         return redirect(url_for("login"))
     try:
-        if not session["cart"]:
-            session["cart"] = []
+        if not session.get("cart"):
+            session["cart"] = {}
         return {"success": True, "cart": session["cart"]}
     except:
         return {"success": False, "cart": []}

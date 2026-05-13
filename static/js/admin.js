@@ -138,7 +138,7 @@ function createMenuItem(item_id, navn, beskrivelse, billede_sti, pris){
 
     const price_label = document.createElement("span")
     price_label.classList.add("menu-item-price")
-    price_label.textContent = `${pris} kr`
+    price_label.textContent = `${pris} C`
 
     details.appendChild(name_h2)
     details.appendChild(description_p)
