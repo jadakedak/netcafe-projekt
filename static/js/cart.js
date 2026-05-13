@@ -94,7 +94,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         quantity_total += item.quantity
     }
     const total = calculateTotal(pricelist)
-    
+    if(total <= 0){
+        document.getElementById("checkout-button").disabled = true
+        alert("you dont have any items in your cart!")
+        window.location.href = `/${userId}/menu`
+    }else{
+        document.getElementById("checkout-button").disabled = false
+    }
+
     price_total = total
     document.getElementById("total").textContent = `${total} C`
 })

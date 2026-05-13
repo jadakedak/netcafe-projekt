@@ -38,7 +38,6 @@ class User(db.Model):
     credits     = db.Column(db.Integer, nullable=False)
     transactions = db.relationship("Transactions", foreign_keys="Transactions.user_id", primaryjoin="User.userid == Transactions.user_id")
 
-
 class Menuitem(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
     item_id     = db.Column(db.String(50), unique=True, nullable=False)
@@ -72,7 +71,7 @@ def handle_connect():
 @socketio.on('disconnect')
 def handle_disconnect():
     print(f"Client disconnected: {request.sid}")
-    
+
 @socketio.on('message')
 def handle_message(msg):
     type = msg["type"]
@@ -290,7 +289,6 @@ def checkout():
     return {"success": True, "message": "Checkout successful"}
 
     
-    
 @app.route("/api/users", methods=["GET"])
 def api_users():
     if 'user_id' in session:
@@ -358,7 +356,6 @@ def transaction_history():
         return {"success": True, "transactions": transactions}
     except Exception:
         return {"success": False, "message": "failed to load transactions!"}
-
 
 # MENU API ENDPOINTS
 @app.route("/api/menu/items", methods=["GET"])
@@ -440,7 +437,6 @@ def get_cart():
     except:
         return {"success": False, "cart": []}
 
-
 # ADMIN ONLY
 @app.route("/api/menu/items/add", methods=["POST"])
 def api_add_menu_item():
@@ -498,6 +494,26 @@ def api_edit_menu_item(item_id):
 
     db.session.commit()
     return {"success": True, "message": "Menu item updated successfully"}, 200
+
+@app.route("/api/computers/get", methods=["GET"])
+def api_get_computers():
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    if not User.query.filter_by(userid=session['user_id']).first().admin:
+        return {"message": "Unauthorized"}, 401
+    
+    computers = Computer.query.all()
+    computer_list = []
+    for computer in computers:
+        computer_list.append({
+            "id": computer.id,
+            "pcid": computer.pcid,
+            "pcname": computer.pcname,
+            "user": computer.user,
+            "connected": computer.connected,
+            "connection_date": computer.connection_date.isoformat()
+        })
+    return {"success": True, "computers": computer_list}
 
 # DEBUG ENDPOINTS
 @app.route("/api/test", methods=["GET"])

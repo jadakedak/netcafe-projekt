@@ -68,6 +68,7 @@ close_edit_menu_form.addEventListener("click", () => {
 
 const submit_menu_item = document.getElementById("submit-menu-item");
 submit_menu_item.addEventListener("click", async (e) => {
+e.preventDefault();
     const navn = document.getElementById("menu-item-name").value;
     const beskrivelse = document.getElementById("menu-item-description").value;
     const billede_sti = document.getElementById("menu-item-picture").value;
@@ -80,9 +81,14 @@ submit_menu_item.addEventListener("click", async (e) => {
     // adding a new menu item
     const item_details = await addMenuItemDB(navn, beskrivelse, billede_sti, pris);
     const menuItem = createMenuItem(item_details["item_id"], navn, beskrivelse, billede_sti, pris);
-    
     document.getElementById("menu_list").appendChild(menuItem);
+
     menu_form.style.display = "none";
+
+    document.getElementById("menu-item-name").value = ""
+    document.getElementById("menu-item-description").value = ""
+    document.getElementById("menu-item-picture").value = ""
+    document.getElementById("menu-item-price").value = ""
 });
 const submit_edit_menu_item = document.getElementById("submit-edit-menu-item")
 submit_edit_menu_item.addEventListener("click", async (e) => {
@@ -263,7 +269,22 @@ async function displayMenuItems(){
     });
 }
 
+async function displayComputers(){
+    const response = await fetch("/api/computers/get", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+    })
+    const computers = await response.json()
+    return computers
+}
+
+// THIS IS THE SHIT BITCH
+document.getElementById("get-computers-test").addEventListener("click", () => {
+    const computers = displayComputers()
+    console.log(computers) 
+})
+
 document.addEventListener("DOMContentLoaded", () => {
     displayMenuItems();
-    displayUsers();
+    displayUsers()
 });
