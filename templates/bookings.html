@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookings</title>
+    <link rel="stylesheet" href="/static/css/bookings.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Bookings</h1>
+        <button id="new-booking-btn">+ New Booking</button>
+    </div>
+
+    <div class="calendar-nav">
+        <button id="prev-month">&#8592;</button>
+        <span id="month-label"></span>
+        <button id="next-month">&#8594;</button>
+    </div>
+
+    <div class="calendar-grid">
+        <div class="day-name">Mon</div>
+        <div class="day-name">Tue</div>
+        <div class="day-name">Wed</div>
+        <div class="day-name">Thu</div>
+        <div class="day-name">Fri</div>
+        <div class="day-name">Sat</div>
+        <div class="day-name">Sun</div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-card">
+            <h2>New Booking</h2>
+            <div class="form-field">
+                <label>Date</label>
+                <input type="date" id="booking-date">
+            </div>
+            <div class="form-field">
+                <label>Start Time</label>
+                <input type="time" id="booking-start">
+            </div>
+            <div class="form-field">
+                <label>End Time</label>
+                <input type="time" id="booking-end">
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-btn">Cancel</button>
+                <button id="submit-btn">Add Booking</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const computers = {{ computers | tojson }}
+    </script>
+    <script src="/static/js/bookings.js"></script>
+</body>
+</html>

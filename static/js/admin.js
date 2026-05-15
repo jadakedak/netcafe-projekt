@@ -65,7 +65,6 @@ close_edit_menu_form.addEventListener("click", () => {
     document.getElementById("edit_menu_item_form").style.display = "none"
 })
     
-
 const submit_menu_item = document.getElementById("submit-menu-item");
 submit_menu_item.addEventListener("click", async (e) => {
 e.preventDefault();
@@ -254,37 +253,95 @@ async function editMenuItem(item_id){
 }
 
 async function displayMenuItems(){
-    const response = await fetch("/api/menu/items", {
-        method: "GET",
+    try{
+        const response = await fetch("/api/menu/items", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        const data = await response.json();
+        const menu_list = document.getElementById("menu_list");
+        menu_list.innerHTML = "";
+        data.items.forEach(item => {
+            const menuItem = createMenuItem(item.id, item.navn, item.beskrivelse, item.billede_sti, item.pris);
+            menu_list.appendChild(menuItem);
+        });
+    }catch(error){
+        console.log(error)
+    }
+}
+
+async function sendComputerMsg(target, type, message){
+    const response = await fetch("/api/computers/send", {
+        method: "POST",
         headers: {
             "Content-Type": "application/json"
-        }
-    });
-    const data = await response.json();
-    const menu_list = document.getElementById("menu_list");
-    menu_list.innerHTML = "";
-    data.items.forEach(item => {
-        const menuItem = createMenuItem(item.id, item.navn, item.beskrivelse, item.billede_sti, item.pris);
-        menu_list.appendChild(menuItem);
-    });
+        },
+        body: JSON.stringify({
+            "target": target, 
+            "type": type, 
+            "message": message
+        })
+    })
+    const data = await response.json()
+    return data
+}
+function createComputeritem(pcid, pcnavn, pcuser){
+    const container = document.createElement("div")
+    container.classList.add(`computer-item-${pcid}`)
+    container.id = `computer-item-${pcid}`
+
+    const connected_status = document.createElement("div")
+    connected_status.classList.add(`computer-item-connected_status`)
+
+    const pcnavn_obj = document.createElement("h2")
+    pcnavn_obj.classList.add(`computer-item-navn`)
+    pcnavn_obj.textContent = pcnavn
+
+    const pcuser_obj = document.createElement("p")
+    pcuser_obj.classList.add(`computer-item-bruger`)
+    pcuser_obj.textContent = pcuser
+
+    const off_button_obj = document.createElement("button")
+    off_button_obj.classList.add(`computer-item-offbtn`)
+    off_button_obj.textContent = "OFF"
+    off_button_obj.addEventListener("click", () => {
+        sendComputerMsg(pcid, "command", "OFF")
+    })
+    //setInterval(() => {
+    // maybe get it to retrieve last_seen and update it    
+    //}, 300000)
+    container.appendChild(connected_status)
+    container.appendChild(pcnavn_obj)
+    container.appendChild(pcuser_obj)
+    container.appendChild(off_button_obj)
+    return container
 }
 
 async function displayComputers(){
-    const response = await fetch("/api/computers/get", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" }
-    })
-    const computers = await response.json()
-    return computers
-}
+    try{
+        const response = await fetch("/api/computers/get", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        })
+        const computers = await response.json()
+        if(computers.success){
+            let computer_list = computers["computers"]
 
-// THIS IS THE SHIT BITCH
-document.getElementById("get-computers-test").addEventListener("click", () => {
-    const computers = displayComputers()
-    console.log(computers) 
-})
+            for(let index in computer_list){
+                let computer = computer_list[index]
+                const computer_item = createComputeritem(computer.pcid, computer.pcname, computer.user)
+                document.getElementById("computer_list").appendChild(computer_item)
+            }
+        }
+    }catch(error){
+        console.log("no computers registered!")
+    }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     displayMenuItems();
     displayUsers()
+    displayComputers();
 });

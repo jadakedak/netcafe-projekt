@@ -24,7 +24,6 @@ socketio = fsock.SocketIO(app, cors_allowed_origins="*")
 db = SQLAlchemy(app)
 edit_mode = False
 
-CLOUD_SERVER_URL = "http://159.65.92.59:3000"
 
 class User(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
@@ -51,8 +50,8 @@ class Computer(db.Model):
     pcid            = db.Column(db.String(50), unique=True, nullable=False)
     pcname          = db.Column(db.String(100), nullable=False)
     user            = db.Column(db.String(50), nullable=False)
-    connected       = db.Column(db.Boolean, default=True)
     connection_date = db.Column(db.DateTime, nullable=False)
+    last_seen       = db.Column(db.DateTime, nullable=False)
 
 class Transactions(db.Model):
     id              = db.Column(db.Integer, primary_key=True)
@@ -62,6 +61,12 @@ class Transactions(db.Model):
     amount          = db.Column(db.Integer, nullable=False)
     total           = db.Column(db.Integer, nullable=True)
     purchased_at    = db.Column(db.DateTime, nullable=False)
+
+class Bookings(db.Model):
+    id   = db.Column(db.Integer, primary_key=True)
+    pc   = db.Column(db.String(50), nullable=False)
+    user = db.Column(db.String(50), nullable=False)
+    time = db.Column(db.DateTime, nullable=False)
 
 # SOCKET IO ENDPOINTS
 @socketio.on('connect')
@@ -80,6 +85,8 @@ def handle_message(msg):
         exists = Computer.query.filter_by(pcid=msg["pcid"]).first()
         if exists:
             print("Computer already registered")
+            exists.last_seen = datetime.now()
+            db.session.commit()
             return {"type": "registration", "success": False, "message": "Computer already registered"}, 400
         
         try:
@@ -87,7 +94,8 @@ def handle_message(msg):
                 pcid=msg["pcid"],
                 pcname=msg["pcname"],
                 user=msg["user"],
-                connection_date=datetime.now()
+                connection_date=datetime.now(),
+                last_seen = datetime.now()
             )
             db.session.add(new_pc)
             db.session.commit()
@@ -96,8 +104,17 @@ def handle_message(msg):
         except Exception as e:
             print("Error registering computer:", e)
             return {"type": "registration", "success": False, "message": str(e)}, 500
-    print(f"Received message: {msg}")
-
+    elif type == "ping":
+        try:
+            pcid = msg["id"]
+            computer = Computer.query.filter_by(pcid=pcid).first()
+            computer.last_seen = datetime.now()
+            db.session.commit()
+            return {"type": "pong"}
+        except Exception as e:
+            print("PING ERROR OCCURED: " + str(e))
+    else:
+        print(f"Received message: {msg}")
 
 # USER FUNCTIONS
 def remove_user(user_id):
@@ -119,7 +136,6 @@ def clear_users():
     db.session.commit()
     return num_rows_deleted
 
-
 # MENUITEM FUNCTIONS
 def remove_menuitem(item_id):
     item = Menuitem.query.get(item_id)
@@ -131,7 +147,6 @@ def remove_menuitem(item_id):
 
 def get_menuitems():
     return Menuitem.query.all()
-
 
 # TRANSACTION FUNCTIONS
 def generate_Tansid(length):
@@ -205,6 +220,24 @@ def cart(userid):
         session["cart"] = {}
     return render_template("/cart.html", userid=userid, cart=session["cart"])
 
+@app.route("/<userid>/bookings")
+def bookings(userid):
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    computers = Computer.query.all()
+    computer_list = []
+    for computer in computers:
+        computer_list.append({
+            "id": computer.id,
+            "pcid": computer.pcid,
+            "pcname": computer.pcname,
+            "user": computer.user,
+            "connection_date": computer.connection_date.isoformat(),
+            "last_seen": computer.last_seen
+        }
+    )
+    return render_template("bookings.html", userid=userid, computers=computer_list)
+
 @app.route("/register", methods=["GET"])
 def register():
     return render_template("register.html")
@@ -212,6 +245,7 @@ def register():
 @app.route("/login", methods=["GET"])
 def login():
     return render_template("login.html")
+
 
 
 # USER API ENDPOINTS
@@ -495,6 +529,7 @@ def api_edit_menu_item(item_id):
     db.session.commit()
     return {"success": True, "message": "Menu item updated successfully"}, 200
 
+
 @app.route("/api/computers/get", methods=["GET"])
 def api_get_computers():
     if not 'user_id' in session:
@@ -510,10 +545,31 @@ def api_get_computers():
             "pcid": computer.pcid,
             "pcname": computer.pcname,
             "user": computer.user,
-            "connected": computer.connected,
-            "connection_date": computer.connection_date.isoformat()
-        })
+            "connection_date": computer.connection_date.isoformat(),
+            "last_seen": computer.last_seen
+        }
+    )
     return {"success": True, "computers": computer_list}
+
+@app.route("/api/computers/broadcast", methods=["POST"])
+def api_computers_broadcast():
+    data = request.get_json()
+    try:
+        socketio.emit("broadcast", data["message"])
+        return {"success": True, "message": "broadcast message was sent!"}, 200
+    except Exception as e:
+        return {"success": False, "message": f"Broadcast Failed: {str(e)}"}, 400
+
+@app.route("/api/computers/send", methods=["POST"])
+def api_computers_send():
+    data = request.get_json()
+    
+    target_id = data.get("target")
+    type = data.get("type")
+    message = data.get("message")
+    
+    socketio.emit(type, {"target": target_id, "message": message})
+
 
 # DEBUG ENDPOINTS
 @app.route("/api/test", methods=["GET"])

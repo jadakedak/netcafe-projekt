@@ -8,6 +8,8 @@ from random import choice
 sio = socketio.Client()
 id_path = os.path.join(os.environ["PROGRAMDATA"], "Netcafe", "id.txt")
 
+PING_TIMEOUT_SECONDS = 300 # Every 5 minutes I.E 300 seconds
+
 def generateid(length=16):
     chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     return ''.join(choice(chars) for _ in range(length))
@@ -22,6 +24,9 @@ def Getclientid():
         f.write(new_id)
     return new_id
 
+def ping():
+    sio.send({"type": "ping", "id": Getclientid()})
+
 @sio.event
 def connect():
     data = {
@@ -31,17 +36,18 @@ def connect():
         "user": os.getlogin(),
     }
     sio.send(data)
+    sio.start_background_task(ping_loop)
     print("Connected to server")
+
+def ping_loop():
+    while True:
+        sio.sleep(PING_TIMEOUT_SECONDS)
+        ping()
 
 @sio.event
 def disconnect():
-    data = {
-        "type": "disconnect",
-        "pcid": Getclientid(),
-    }
-    sio.send(data)
     print("Disconnected from server")
-    
+
 @sio.event
 def message(msg):
     if msg.get("type") == "registration":
@@ -49,8 +55,25 @@ def message(msg):
             print("Computer registered successfully")
         else:
             print(f"Failed to register computer: {msg.get('message')}")
-    
-    print(f"Received message: {msg}")
+    elif msg.get("type") == "pong":
+        print("received ping response!")
+    else:
+        print("unkown message")
 
+def handle_command(command):
+    if command == "OFF":
+        print("computer is turning off")
+        
+@sio.event
+def command(command):
+    if command["target"] == Getclientid():
+        try:
+            output = handle_command(command["message"])
+            if output:
+                return {"success": True, "message": "command was executed!", "output": output}
+            return {"success": True, "message": "command was executed!"}
+        except Exception:
+            return {"success": True, "message": "command"}
+    
 sio.connect("http://localhost:5000")
 sio.wait()
