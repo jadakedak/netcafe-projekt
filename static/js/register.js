@@ -1,4 +1,3 @@
-
 function validateRegistrationForm(){
     const fornavn = document.getElementById("fornavn").value;
     const efternavn = document.getElementById("efternavn").value;
@@ -8,15 +7,12 @@ function validateRegistrationForm(){
     const password = document.getElementById("adgangskode").value;
 
     if(!fornavn || !efternavn || !email || !username || !password){
-        //alert("Alle felter skal udfyldes!");
         return false;
     }
     if(!email.includes("@")){
-        //alert("Indtast en gyldig emailadresse!");
         return false;
     }
     if(password.length < 8){
-        //alert("Adgangskoden skal være mindst 8 tegn lang!");
         return false;
     }
     return true;
@@ -58,14 +54,6 @@ async function SendUserRegistration(){
         alert("Registration failed: " + result.message);
     }
 }
-
-/*
-document.getElementById("test").addEventListener("click", async () => {
-    const response = await fetch("http://localhost:5000/api/test");
-    const users = await response.json();
-    console.log(users);
-})
-*/
 
 document.getElementById("btn-submit").addEventListener("click", async (e) => {
     e.preventDefault();

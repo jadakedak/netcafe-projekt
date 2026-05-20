@@ -191,6 +191,7 @@ async function removeMenuItemDB(item_id) {
     const data = await response.json();
     if (!data.success) {
         alert("Failed to remove menu item: " + data.message);
+        return;
     }
     return data;
 }
@@ -241,6 +242,7 @@ async function editMenuItem(item_id){
     const data = await response.json();
     if (!data.success){
         alert("Failed to edit menu item: " + data.message);
+        return;
     }
     const updatedItem = createMenuItem(item_id, navn.value, description.textContent, picture_path.value, price.value);
     const oldItem = document.getElementById(`menu-item-${item_id}`);
@@ -340,8 +342,8 @@ async function displayComputers(){
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    displayMenuItems();
+addEventListener("DOMContentLoaded", () => {
     displayUsers()
+    displayMenuItems();
     displayComputers();
 });

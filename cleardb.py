@@ -1,6 +1,6 @@
-from app import app, db, User
+from app import app, db, User, Bookings
 
 with app.app_context():
-    deleted = User.query.filter(User.brugernavn != "thomedak").delete()
+    deleted_bookings = Bookings.query.delete()
     db.session.commit()
-    print(f"Deleted {deleted} user(s)")
+    print(f"Deleted {deleted_bookings} booking(s)")

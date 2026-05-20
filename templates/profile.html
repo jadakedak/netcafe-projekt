@@ -7,9 +7,7 @@
     <link rel="stylesheet" href="/static/css/profile.css">
 </head>
 <body>
-    <div class="header">
-        <h1>{{ user.fornavn }}'s Profile</h1>
-    </div>
+    {% include '_navbar.html' %}
 
     <div class="profile-info">
         <p><strong>Username:</strong> {{ user.brugernavn }}</p>
@@ -24,7 +22,7 @@
     </div>
 
     <script>
-        const userId = "{{ user.userid }}";
+        const userid = "{{ user.userid }}";
     </script>
     <script src="/static/js/profile.js"></script>
 </body>

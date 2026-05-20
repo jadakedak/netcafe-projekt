@@ -11,15 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playwrite+GB+J+Guides:ital@0;1&family=Smooch+Sans:wght@100..900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="topbar">
-        {% if is_admin %}
-        <a id="admin-panel-link" href="/{{ userid }}/admin">Admin Panel</a>
-        {% endif %}
-        <h1 id="headline">Din Netcafé</h1>
-        <a href="/{{ userid }}/creditshop">Credit store</a>
-        <a href="/{{ userid }}/menu">Menu</a>
-        <a href="/{{ userid }}/profile"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></a>
-    </div>
+    {% include '_navbar.html' %}
 
     <script src="/static/js/index.js"></script>
 </body>

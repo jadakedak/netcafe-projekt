@@ -9,7 +9,7 @@ body {
     background: #0d0d0d;
     color: #e0e0e0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 40px 16px 48px;
+    padding: 0 0 48px;
 }
 
 #home-button {
@@ -36,7 +36,7 @@ body {
 
 #go-to-cart {
     position: fixed;
-    top: 20px;
+    top: 85px;
     right: 24px;
     display: flex;
     align-items: center;
@@ -79,6 +79,7 @@ body {
     gap: 8px;
     max-width: 680px;
     margin: 0 auto;
+    padding: 100px 16px 0;
 }
 
 .menu-item-container {

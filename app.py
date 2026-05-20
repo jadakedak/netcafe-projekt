@@ -6,14 +6,10 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from random import randint
 
-### DOING:
-# - admin panel for user and menu management
-
 ### TODO: 
-# implement bcrypt for password hashing
-# make connector script for clients to connect to socketio server
-# implement computer management (add/remove computers, track connection times)
-# implement menu management endpoint (add/remove menu items, get menu items)
+# - bookings.js har brug for error handling
+# - tilføj sorting i menu'en så man kan sortere mellem drinks og mad
+# - tilføj kryptering af passwords så databasen kun har den krypteret version af passwordet
 
 app = Flask(__name__)
 app.secret_key = "myassisonfire"
@@ -23,7 +19,6 @@ CORS(app)
 socketio = fsock.SocketIO(app, cors_allowed_origins="*")
 db = SQLAlchemy(app)
 edit_mode = False
-
 
 class User(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
@@ -35,7 +30,10 @@ class User(db.Model):
     brugernavn  = db.Column(db.String(50), unique=True, nullable=False)
     adgangskode = db.Column(db.String(200), nullable=False)
     credits     = db.Column(db.Integer, nullable=False)
-    transactions = db.relationship("Transactions", foreign_keys="Transactions.user_id", primaryjoin="User.userid == Transactions.user_id")
+    transactions = db.relationship("Transactions", 
+            foreign_keys="Transactions.user_id", 
+            primaryjoin="User.userid == Transactions.user_id"
+    )
 
 class Menuitem(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
@@ -63,10 +61,12 @@ class Transactions(db.Model):
     purchased_at    = db.Column(db.DateTime, nullable=False)
 
 class Bookings(db.Model):
-    id   = db.Column(db.Integer, primary_key=True)
-    pc   = db.Column(db.String(50), nullable=False)
-    user = db.Column(db.String(50), nullable=False)
-    time = db.Column(db.DateTime, nullable=False)
+    id            = db.Column(db.Integer, primary_key=True)
+    userid        = db.Column(db.String(50), nullable=False)
+    pc_id         = db.Column(db.Integer, nullable=False)
+    booking_start = db.Column(db.DateTime, nullable=False)
+    booking_end   = db.Column(db.DateTime, nullable=False)
+    creation_date = db.Column(db.DateTime, nullable=False)
 
 # SOCKET IO ENDPOINTS
 @socketio.on('connect')
@@ -179,10 +179,13 @@ def home(userid):
     is_admin = False
     if not 'user_id' in session:
         return redirect(url_for("login"))
-    
     user = User.query.filter_by(userid=userid).first()
     is_admin = user.admin if user else False
-    return render_template("index.html", userid=userid, is_admin=is_admin)
+    return render_template("index.html", 
+        userid=userid, 
+        is_admin=is_admin, 
+        headline="Din netcafé"
+    )
 
 @app.route("/<userid>/admin", methods=["GET"])
 def admin(userid):
@@ -190,7 +193,7 @@ def admin(userid):
     if not user or not user.admin:
         flash("Unauthorized access", "danger")
         return redirect(url_for("home", userid=userid))
-    return render_template("admin.html", userid=userid)
+    return render_template("admin.html", userid=userid, headline="Admin Panel")
 
 @app.route("/<userid>/profile", methods=["GET"])
 def profile(userid):
@@ -198,19 +201,21 @@ def profile(userid):
     if not user:
         flash("User not found", "danger")
         return redirect(url_for("home", userid=userid))
-    return render_template("profile.html", user=user)
+    return render_template("profile.html", headline=f"{user.fornavn}'s profil", user=user, userid=userid, is_admin=user.admin)
 
 @app.route("/<userid>/creditshop", methods=["GET"])
 def creditshop(userid):
     if not 'user_id' in session:
         return redirect(url_for("login"))
-    return render_template("/creditshop.html", userid=userid)
+    user = User.query.filter_by(userid=userid).first()
+    return render_template("/creditshop.html", headline="Credits shop", userid=userid, is_admin=user.admin)
 
 @app.route("/<userid>/menu", methods=["GET"])
 def menu(userid):
     if not 'user_id' in session:
         return redirect(url_for("login"))
-    return render_template("menu.html", userid=userid)
+    user = User.query.filter_by(userid=userid).first()
+    return render_template("menu.html", userid=userid, headline="menu", is_admin=user.admin)
 
 @app.route("/<userid>/cart", methods=["GET"])
 def cart(userid):
@@ -218,13 +223,17 @@ def cart(userid):
         return redirect(url_for("login"))
     if not session.get("cart"):
         session["cart"] = {}
-    return render_template("/cart.html", userid=userid, cart=session["cart"])
+    return render_template("/cart.html", headline="Cart", userid=userid, cart=session["cart"])
 
 @app.route("/<userid>/bookings")
 def bookings(userid):
     if not 'user_id' in session:
         return redirect(url_for("login"))
+    user = User.query.filter_by(userid=userid).first()
     computers = Computer.query.all()
+    bookings = Bookings.query.all()
+    
+    bookings_list = []
     computer_list = []
     for computer in computers:
         computer_list.append({
@@ -233,10 +242,25 @@ def bookings(userid):
             "pcname": computer.pcname,
             "user": computer.user,
             "connection_date": computer.connection_date.isoformat(),
-            "last_seen": computer.last_seen
+            "last_seen": computer.last_seen.isoformat()
         }
     )
-    return render_template("bookings.html", userid=userid, computers=computer_list)
+    for booking in bookings:
+        bookings_list.append({
+            "id": booking.id,
+            "userid": booking.userid,
+            "pc_id": booking.pc_id,
+            "booking_start": booking.booking_start.isoformat(),
+            "booking_end": booking.booking_end.isoformat(),
+        }
+    )
+    return render_template("bookings.html",
+        headline="Bookings",
+        userid=userid,
+        computers=computer_list,
+        bookings=bookings_list,
+        is_admin=user.admin,
+    )
 
 @app.route("/register", methods=["GET"])
 def register():
@@ -245,7 +269,6 @@ def register():
 @app.route("/login", methods=["GET"])
 def login():
     return render_template("login.html")
-
 
 
 # USER API ENDPOINTS
@@ -263,8 +286,8 @@ def api_register():
         efternavn=data["efternavn"],
         email=data["email"],
         brugernavn=data["username"],
-        adgangskode=data["password"],  # hash with bcrypt before production
-        userid=str(uuid4()),  # Generate a unique user ID
+        adgangskode=data["password"],
+        userid=str(uuid4()),
         credits=data["credits"]
     )
     db.session.add(new_user)
@@ -281,8 +304,7 @@ def api_login():
         session['user_id'] = user.userid
         return {"success": True, "user_id": user.userid}, 200
     return {"message": "Invalid username or password"}, 401
-
-
+ 
 # BUYING ENDPOINTS
 @app.route("/api/buy/credits", methods=["POST"])
 def buy_credits():
@@ -471,7 +493,7 @@ def get_cart():
     except:
         return {"success": False, "cart": []}
 
-# ADMIN ONLY
+# MENU:ADMIN ONLY
 @app.route("/api/menu/items/add", methods=["POST"])
 def api_add_menu_item():
     if not 'user_id' in session:
@@ -562,6 +584,10 @@ def api_computers_broadcast():
 
 @app.route("/api/computers/send", methods=["POST"])
 def api_computers_send():
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    if not User.query.filter_by(userid=session['user_id']).first().admin:
+        return {"message": "Unauthorized"}, 401
     data = request.get_json()
     
     target_id = data.get("target")
@@ -570,6 +596,37 @@ def api_computers_send():
     
     socketio.emit(type, {"target": target_id, "message": message})
 
+
+@app.route("/api/bookings/add", methods=["POST"])
+def api_bookings_add():
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    data = request.get_json()
+    try:
+        userid = data.get("userid")
+        pcid = data.get("computer_id")
+        booking_start = datetime.fromisoformat(data.get("booking_start"))
+        booking_end = datetime.fromisoformat(data.get("booking_end"))
+
+        new_booking = Bookings(userid=userid, pc_id=pcid, booking_start=booking_start, booking_end=booking_end, creation_date=datetime.now())
+        db.session.add(new_booking)
+        db.session.commit()
+        
+        return {"success": True, "message": "booking was saved!"}, 201
+    except Exception as e:
+        return {"success": False, "message": str(e)}, 400
+    
+@app.route("/api/bookings/delete/<bookingid>", methods=["DELETE"])
+def api_booking_delete(bookingid):
+    try:
+        if not 'user_id' in session:
+            return redirect(url_for("login"))
+        booking_to_delete = Bookings.query.filter_by(id=bookingid).first()
+        db.session.delete(booking_to_delete)
+        db.session.commit()
+        return {"success": True, "message": "Booking was deleted!"}
+    except Exception as e:
+        return {"success": False, "message": "invalid logged in user!"}
 
 # DEBUG ENDPOINTS
 @app.route("/api/test", methods=["GET"])

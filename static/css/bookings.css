@@ -1,1 +1,356 @@
-﻿
+﻿* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0d0d0d;
+    color: #e0e0e0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    padding: 0 0 48px;
+}
+
+.header {
+    justify-content: flex-end;
+}
+
+#new-booking-btn {
+    display: block;
+    margin: 28px 40px 0 auto;
+    background: #7c3aed;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 16px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+#new-booking-btn:hover {
+    background: #6d28d9;
+}
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 40px 12px;
+}
+
+.calendar-nav button {
+    background: none;
+    border: 1px solid #2a2a2a;
+    color: #9ca3af;
+    border-radius: 6px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.15s, color 0.15s;
+}
+
+.calendar-nav button:hover {
+    background: #1e1e1e;
+    color: #fff;
+}
+
+#month-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f0f0f0;
+    min-width: 160px;
+    text-align: center;
+}
+
+.calendar-wrapper {
+    margin: 0 40px;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: 52px repeat(7, 1fr);
+    gap: 1px;
+    background: #2a2a2a;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.calendar-grid::before {
+    content: '';
+    background: #111111;
+}
+
+.time-grid {
+    display: flex;
+    background: #2a2a2a;
+    gap: 1px;
+}
+
+.time-labels {
+    display: flex;
+    flex-direction: column;
+    width: 52px;
+    flex-shrink: 0;
+    background: #111111;
+}
+
+.time-label {
+    height: 48px;
+    font-size: 0.65rem;
+    color: #4b5563;
+    padding: 4px 6px 0;
+    border-top: 1px solid #2a2a2a;
+    flex-shrink: 0;
+}
+
+.day-columns {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    flex: 1;
+}
+
+.day-column {
+    background: #1a1a1a;
+    position: relative;
+    height: calc(48px * 24);
+    background-image: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 47px,
+        #2a2a2a 47px,
+        #2a2a2a 48px
+    );
+}
+
+#booking-edit-window {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+
+#booking-edit-window.open {
+    display: flex;
+}
+
+.edit-card {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 28px 32px;
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.edit-card h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.edit-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.edit-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+}
+
+.edit-label {
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.6px;
+}
+
+.edit-row span:last-child {
+    color: #e0e0e0;
+}
+
+#edit-delete-btn {
+    background: #7f1d1d;
+    color: #fca5a5;
+}
+
+#edit-delete-btn:hover {
+    background: #991b1b;
+}
+
+.booking-block {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-size: 0.7rem;
+    overflow: hidden;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.day-name {
+    background: #111111;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #6c7a8e;
+}
+
+.day-cell {
+    background: #1a1a1a;
+    min-height: 100px;
+    padding: 8px;
+}
+
+.day-cell.empty {
+    background: #111111;
+}
+
+.day-cell.today .day-number {
+    background: #7c3aed;
+    color: #fff;
+    border-radius: 50%;
+}
+
+.day-number {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.booking-pill {
+    background: #1e1228;
+    border: 1px solid #7c3aed;
+    color: #a78bfa;
+    font-size: 0.7rem;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.open {
+    display: flex;
+}
+
+.modal-card {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 28px 32px;
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-card h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-field label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #6b7280;
+}
+
+.form-field input {
+    background: #111111;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: #f0f0f0;
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.form-field input:focus {
+    border-color: #7c3aed;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.modal-actions button {
+    border: none;
+    border-radius: 7px;
+    padding: 8px 18px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+#cancel-btn {
+    background: #2a2a2a;
+    color: #9ca3af;
+}
+
+#cancel-btn:hover {
+    background: #333;
+    color: #fff;
+}
+
+#submit-btn {
+    background: #7c3aed;
+    color: #fff;
+}
+
+#submit-btn:hover {
+    background: #6d28d9;
+}

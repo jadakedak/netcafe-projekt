@@ -63,7 +63,7 @@ def message(msg):
 def handle_command(command):
     if command == "OFF":
         print("computer is turning off")
-        
+
 @sio.event
 def command(command):
     if command["target"] == Getclientid():

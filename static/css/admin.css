@@ -12,37 +12,6 @@ body {
     padding: 0 0 48px;
 }
 
-.header {
-    background: #1a1a1a;
-    border-bottom: 1px solid #2a2a2a;
-    padding: 20px 40px;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-}
-
-.header h1 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #ffffff;
-    margin-right: auto;
-}
-
-.header a {
-    color: #9ca3af;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    padding: 6px 14px;
-    border-radius: 6px;
-    transition: background 0.15s, color 0.15s;
-}
-
-.header a:hover {
-    background: #2a2a2a;
-    color: #ffffff;
-}
-
 .layout {
     display: flex;
     height: calc(100vh - 61px);

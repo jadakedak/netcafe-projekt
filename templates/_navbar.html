@@ -1,0 +1,12 @@
+<link rel="stylesheet" href="/static/css/navbar.css">
+<nav class="header">
+  <h1>{{ headline }}</h1>
+    {% if is_admin %}
+    <a id="admin-panel-link" href="/{{ userid }}/admin">Admin Panel</a>
+    {% endif %}
+  <a href="/{{ userid }}/home" class="{% if active == 'home' %}active{% endif %}">Home</a>
+  <a href="/{{ userid }}/profile" class="{% if active == 'profile' %}active{% endif %}">Profile</a>
+  <a href="/{{ userid }}/bookings" class="{% if active == 'bookings' %}active{% endif %}">Bookings</a>
+  <a href="/{{ userid }}/creditshop" class="{% if active == 'bookings' %}active{% endif %}">Credits shop</a>
+  <a href="/{{ userid }}/menu" class="{% if active == 'menu' %}active{% endif %}">Menu</a>
+</nav>

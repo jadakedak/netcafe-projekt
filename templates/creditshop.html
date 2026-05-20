@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/static/css/creditshop.css">
 </head>
 <body>
-    <a id="home-button" href="/{{ userid }}/home">← Home</a>
+    {% include '_navbar.html' %}
     <div id="shop_container">
         <h2>credit amount:</h2>
         <input id="credit-amount" type="number" min="5" max="5000" placeholder="1234">

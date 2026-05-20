@@ -7,30 +7,73 @@
     <link rel="stylesheet" href="/static/css/bookings.css">
 </head>
 <body>
-    <div class="header">
-        <h1>Bookings</h1>
-        <button id="new-booking-btn">+ New Booking</button>
-    </div>
+    {% include '_navbar.html' %}
+    <button id="new-booking-btn">+ New Booking</button>
 
     <div class="calendar-nav">
-        <button id="prev-month">&#8592;</button>
+        <button id="prev-week">&#8592;</button>
         <span id="month-label"></span>
-        <button id="next-month">&#8594;</button>
+        <button id="next-week">&#8594;</button>
     </div>
 
-    <div class="calendar-grid">
-        <div class="day-name">Mon</div>
-        <div class="day-name">Tue</div>
-        <div class="day-name">Wed</div>
-        <div class="day-name">Thu</div>
-        <div class="day-name">Fri</div>
-        <div class="day-name">Sat</div>
-        <div class="day-name">Sun</div>
+    <div class="calendar-wrapper">
+        <div class="calendar-grid">
+            <div class="day-name" id="monday">Mon</div>
+            <div class="day-name" id="tuesday">Tue</div>
+            <div class="day-name" id="wednesday">Wed</div>
+            <div class="day-name" id="thursday">Thu</div>
+            <div class="day-name" id="friday">Fri</div>
+            <div class="day-name" id="saturday">Sat</div>
+            <div class="day-name" id="sunday">Sun</div>
+        </div>
+
+        <div class="time-grid">
+            <div class="time-labels">
+                <div class="time-label">00:00</div>
+                <div class="time-label">01:00</div>
+                <div class="time-label">02:00</div>
+                <div class="time-label">03:00</div>
+                <div class="time-label">04:00</div>
+                <div class="time-label">05:00</div>
+                <div class="time-label">06:00</div>
+                <div class="time-label">07:00</div>
+                <div class="time-label">08:00</div>
+                <div class="time-label">09:00</div>
+                <div class="time-label">10:00</div>
+                <div class="time-label">11:00</div>
+                <div class="time-label">12:00</div>
+                <div class="time-label">13:00</div>
+                <div class="time-label">14:00</div>
+                <div class="time-label">15:00</div>
+                <div class="time-label">16:00</div>
+                <div class="time-label">17:00</div>
+                <div class="time-label">18:00</div>
+                <div class="time-label">19:00</div>
+                <div class="time-label">20:00</div>
+                <div class="time-label">21:00</div>
+                <div class="time-label">22:00</div>
+                <div class="time-label">23:00</div>
+            </div>
+            <div class="day-columns">
+                <div class="day-column" id="col-monday"></div>
+                <div class="day-column" id="col-tuesday"></div>
+                <div class="day-column" id="col-wednesday"></div>
+                <div class="day-column" id="col-thursday"></div>
+                <div class="day-column" id="col-friday"></div>
+                <div class="day-column" id="col-saturday"></div>
+                <div class="day-column" id="col-sunday"></div>
+            </div>
+        </div>
     </div>
 
     <div class="modal-overlay" id="modal">
         <div class="modal-card">
             <h2>New Booking</h2>
+            <div class="form-field">
+                <label>Computer</label>
+                <select id="computer-select">
+                </select>
+            </div>
             <div class="form-field">
                 <label>Date</label>
                 <input type="date" id="booking-date">
@@ -50,7 +93,26 @@
         </div>
     </div>
 
+    <div id="booking-edit-window">
+        <div class="edit-card">
+            <h2>Edit Booking</h2>
+            <div class="edit-info">
+                <span id="booking-id" style="display: none" readonly></span>
+                <div class="edit-row"><span class="edit-label">Computer</span><span id="edit-pc"></span></div>
+                <div class="edit-row"><span class="edit-label">Date</span><span id="edit-date"></span></div>
+                <div class="edit-row"><span class="edit-label">Start</span><span id="edit-start"></span></div>
+                <div class="edit-row"><span class="edit-label">End</span><span id="edit-end"></span></div>
+            </div>
+            <div class="modal-actions">
+                <button id="edit-close-btn">Close</button>
+                <button id="edit-delete-btn">Delete Booking</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        const userid = "{{ userid }}"
+        const bookings = {{ bookings | tojson }}
         const computers = {{ computers | tojson }}
     </script>
     <script src="/static/js/bookings.js"></script>

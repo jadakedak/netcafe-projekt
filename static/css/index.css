@@ -4,7 +4,6 @@
     box-sizing: border-box;
 }
 
-
 #headline {
     font-family: "Smooch Sans", cursive;
     font-size: 40px;
@@ -83,16 +82,4 @@ body {
     color: #ffffff;
 }
 
-#admin-panel-link {
-    color: #f59e0b;
-    border-color: #3d2e00;
-    background: #1c1810;
-    margin-right: auto;
-}
-
-#admin-panel-link:hover {
-    background: #221f10;
-    border-color: #f59e0b;
-    color: #fbbf24;
-}
 
