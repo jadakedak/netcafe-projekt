@@ -5,6 +5,12 @@ import flask_socketio as fsock
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from random import randint
+from os import environ
+from apscheduler.schedulers.background import BackgroundScheduler
+from requests import post
+from dotenv import load_dotenv
+
+load_dotenv()
 
 ### TODO: 
 # - bookings.js har brug for error handling
@@ -18,7 +24,7 @@ CORS(app)
 
 socketio = fsock.SocketIO(app, cors_allowed_origins="*")
 db = SQLAlchemy(app)
-edit_mode = False
+scheduler = BackgroundScheduler()
 
 class User(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
@@ -113,6 +119,7 @@ def handle_message(msg):
             return {"type": "pong"}
         except Exception as e:
             print("PING ERROR OCCURED: " + str(e))
+            return {"type": "PINGERROR"}
     else:
         print(f"Received message: {msg}")
 
@@ -155,6 +162,93 @@ def generate_Tansid(length):
     for i in range(length):
         id += chars[randint(0, len(chars) - 1)]
     return id
+
+
+@scheduler.scheduled_job("cron", hour=12, minute=0)
+def cloud_backup():
+    with app.app_context():
+        ip = environ.get("CLOUD_SERVER_IP")
+        port = environ.get("CLOUD_SERVER_PORT")
+
+        # GET THE DATA
+        users = User.query.all()
+        menuitems = Menuitem.query.all()
+        computers = Computer.query.all()
+        transactions = Transactions.query.all()
+        bookings = Bookings.query.all()
+        
+        # SERIALIZE THE DATA
+        Consolidict = {}
+        
+        users_dict = {}
+        menuitems_dict = {}
+        computers_dict = {}
+        transactions_dict = {}
+        bookings_dict = {}
+
+        for user in users:
+            users_dict[user.id] = {
+                "userid": user.userid,
+                "admin": user.admin,
+                "fornavn": user.fornavn,
+                "efternavn": user.efternavn,
+                "email": user.email,
+                "brugernavn": user.brugernavn,
+                "adgangskode": user.adgangskode,
+                "credits": user.credits,
+                "transactions": [t.id for t in user.transactions],
+            }
+        for item in menuitems:
+            menuitems_dict[item.id] = {
+                "itemid": item.item_id,
+                "navn": item.navn,
+                "beskrivelse": item.beskrivelse,
+                "billede_sti": item.billede_sti,
+                "pris": item.pris,
+            }
+        for computer in computers:
+            computers_dict[computer.id] = {
+                "pcid": computer.pcid,
+                "pcname": computer.pcname,
+                "user": computer.user,
+                "connection_date": computer.connection_date.isoformat(),
+                "last_seen": computer.last_seen.isoformat(),
+            }
+        for transaction in transactions:
+            transactions_dict[transaction.id] = {
+                "transaction_id": transaction.transaction_id,
+                "user_id": transaction.user_id,
+                "item": transaction.item,
+                "amount": transaction.amount,
+                "total": transaction.total,
+                "purchased_at": transaction.purchased_at.isoformat(),
+            }
+        for booking in bookings:
+            bookings_dict[booking.id] = {
+                "userid": booking.userid,
+                "pc_id": booking.pc_id,
+                "booking_start": booking.booking_start.isoformat(),
+                "booking_end": booking.booking_end.isoformat(),
+                "creation_date": booking.creation_date.isoformat(),
+            }
+
+        Consolidict["users"] = users_dict
+        Consolidict["menuitems"] = menuitems_dict
+        Consolidict["computers"] = computers_dict
+        Consolidict["transactions"] = transactions_dict
+        Consolidict["bookings"] = bookings_dict
+
+        # SEND THE DATA
+        try:
+            response = post(
+                f"http://{ip}:{port}/api/data",
+                json=Consolidict
+            ).json()
+            if response["success"] == True:
+                print("Cloud backup was successful!")
+                return
+        except Exception as e:
+            print("cloud backup: error occured " + str(e))
 
 # this is for checking if the user is logged in on the frontend, can be used to conditionally render elements based on login status
 @app.route('/api/me')
@@ -647,4 +741,5 @@ def api_test():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+    scheduler.start()
     socketio.run(app, debug=True)

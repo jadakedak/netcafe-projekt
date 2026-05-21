@@ -57,12 +57,16 @@ def message(msg):
             print(f"Failed to register computer: {msg.get('message')}")
     elif msg.get("type") == "pong":
         print("received ping response!")
+    elif msg.get("type") == "PINGERROR":
+        print("ping failed!")
     else:
         print("unkown message")
 
 def handle_command(command):
     if command == "OFF":
-        print("computer is turning off")
+        print("computer is turning off!")
+    elif command == "ON":
+        print("computer is turning on!")
 
 @sio.event
 def command(command):
@@ -72,8 +76,8 @@ def command(command):
             if output:
                 return {"success": True, "message": "command was executed!", "output": output}
             return {"success": True, "message": "command was executed!"}
-        except Exception:
-            return {"success": True, "message": "command"}
+        except Exception as e:
+            return {"success": False, "message": "command execution failed", "error": str(e)}
     
 sio.connect("http://localhost:5000")
 sio.wait()
