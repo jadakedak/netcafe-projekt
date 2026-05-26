@@ -7,12 +7,15 @@ function validateRegistrationForm(){
     const password = document.getElementById("adgangskode").value;
 
     if(!fornavn || !efternavn || !email || !username || !password){
+        alert("you need to fill out all of the fields!")
         return false;
     }
     if(!email.includes("@")){
+        alert("you forgot @ in the email!")
         return false;
     }
     if(password.length < 8){
+        alert("password must be longer than 8 characters!")
         return false;
     }
     return true;
@@ -30,7 +33,7 @@ async function SendUserRegistration(){
         fornavn: fornavn,
         efternavn: efternavn,
         email: email,
-        username: username,
+        username: username.toLowerCase(),
         password: password,
         credits: 0
     }

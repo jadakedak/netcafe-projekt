@@ -1,0 +1,34 @@
+[
+    {
+        "id": 1,
+        "item_id": "4f7df6df-969c-4cad-b873-7ea60550b74f",
+        "navn": "Cheeseburger",
+        "beskrivelse": "Den bedste burger i landet",
+        "billede_sti": "/static/img/Burger.jpg",
+        "pris": 50
+    },
+    {
+        "id": 2,
+        "item_id": "3b134484-56e8-44a5-a556-4f57154ca505",
+        "navn": "Hotdog",
+        "beskrivelse": "En klassisk hotdog med sennep og ketchup",
+        "billede_sti": "/static/img/hotdog.jpg",
+        "pris": 30
+    },
+    {
+        "id": 3,
+        "item_id": "ee8a1c35-5efc-44b1-afd2-4f2a8e9c7687",
+        "navn": "Nudler",
+        "beskrivelse": "En dejlig kop varme nudler",
+        "billede_sti": "/static/img/nudler.jpg",
+        "pris": 40
+    },
+    {
+        "id": 4,
+        "item_id": "e0faaa52-7029-41aa-be91-b1b8ebe4b0f5",
+        "navn": "Toast",
+        "beskrivelse": "En varm og sprød toast",
+        "billede_sti": "/static/img/toast.jpg",
+        "pris": 20
+    }
+]

@@ -5,3 +5,5 @@ with app.app_context():
     user.admin = True
     db.session.commit()
     print("Done")
+
+

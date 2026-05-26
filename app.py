@@ -2,10 +2,12 @@ from uuid import uuid4
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_cors import CORS
 import flask_socketio as fsock
+import flask_bcrypt as bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from random import randint
-from os import environ
+from os import environ, path
+import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from requests import post
 from dotenv import load_dotenv
@@ -19,7 +21,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "myassisonfire"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 CORS(app)
 
 socketio = fsock.SocketIO(app, cors_allowed_origins="*")
@@ -155,6 +157,28 @@ def remove_menuitem(item_id):
 def get_menuitems():
     return Menuitem.query.all()
 
+# this checks if the items in menu.json is not in the database, if so, add them
+def check_existing_items():
+    json_path = path.join(app.static_folder, "menu.json")
+    with open(json_path, "r", encoding="utf-8") as f:
+        items = json.load(f)
+
+    added = 0
+    for item in items:
+        exists = Menuitem.query.filter_by(item_id=item["item_id"]).first()
+        if not exists:
+            db.session.add(Menuitem(
+                item_id=item["item_id"],
+                navn=item["navn"],
+                beskrivelse=item["beskrivelse"],
+                billede_sti=item["billede_sti"],
+                pris=item["pris"],
+            ))
+            added += 1
+
+    db.session.commit()
+    print(f"get_existing_items: added {added} new item(s) from menu.json")
+
 # TRANSACTION FUNCTIONS
 def generate_Tansid(length):
     id = ""
@@ -162,7 +186,6 @@ def generate_Tansid(length):
     for i in range(length):
         id += chars[randint(0, len(chars) - 1)]
     return id
-
 
 @scheduler.scheduled_job("cron", hour=12, minute=0)
 def cloud_backup():
@@ -244,9 +267,10 @@ def cloud_backup():
                 f"http://{ip}:{port}/api/data",
                 json=Consolidict
             ).json()
-            if response["success"] == True:
-                print("Cloud backup was successful!")
+            if not response["success"]:
+                print("Failed to send data, success returned false")
                 return
+            print("Cloud backup was successful!")
         except Exception as e:
             print("cloud backup: error occured " + str(e))
 
@@ -271,7 +295,7 @@ def landing_page():
 @app.route("/<userid>/home", methods=["GET"])
 def home(userid):
     is_admin = False
-    if not 'user_id' in session:
+    if not 'user_id' in session or session['user_id'] != userid:
         return redirect(url_for("login"))
     user = User.query.filter_by(userid=userid).first()
     is_admin = user.admin if user else False
@@ -283,6 +307,8 @@ def home(userid):
 
 @app.route("/<userid>/admin", methods=["GET"])
 def admin(userid):
+    if not 'user_id' in session or session['user_id'] != userid:
+        return redirect(url_for("login"))
     user = User.query.filter_by(userid=userid).first()
     if not user or not user.admin:
         flash("Unauthorized access", "danger")
@@ -291,6 +317,8 @@ def admin(userid):
 
 @app.route("/<userid>/profile", methods=["GET"])
 def profile(userid):
+    if not 'user_id' in session or session['user_id'] != userid:
+        return redirect(url_for("login"))
     user = User.query.filter_by(userid=userid).first()
     if not user:
         flash("User not found", "danger")
@@ -299,21 +327,21 @@ def profile(userid):
 
 @app.route("/<userid>/creditshop", methods=["GET"])
 def creditshop(userid):
-    if not 'user_id' in session:
+    if not 'user_id' in session or session['user_id'] != userid:
         return redirect(url_for("login"))
     user = User.query.filter_by(userid=userid).first()
     return render_template("/creditshop.html", headline="Credits shop", userid=userid, is_admin=user.admin)
 
 @app.route("/<userid>/menu", methods=["GET"])
 def menu(userid):
-    if not 'user_id' in session:
+    if not 'user_id' in session or session['user_id'] != userid:
         return redirect(url_for("login"))
     user = User.query.filter_by(userid=userid).first()
     return render_template("menu.html", userid=userid, headline="menu", is_admin=user.admin)
 
 @app.route("/<userid>/cart", methods=["GET"])
 def cart(userid):
-    if not 'user_id' in session:
+    if not 'user_id' in session or session['user_id'] != userid:
         return redirect(url_for("login"))
     if not session.get("cart"):
         session["cart"] = {}
@@ -321,7 +349,7 @@ def cart(userid):
 
 @app.route("/<userid>/bookings")
 def bookings(userid):
-    if not 'user_id' in session:
+    if not 'user_id' in session or session['user_id'] != userid:
         return redirect(url_for("login"))
     user = User.query.filter_by(userid=userid).first()
     computers = Computer.query.all()
@@ -438,7 +466,7 @@ def checkout():
 
     return {"success": True, "message": "Checkout successful"}
 
-    
+
 @app.route("/api/users", methods=["GET"])
 def api_users():
     if 'user_id' in session:
@@ -702,10 +730,18 @@ def api_bookings_add():
         booking_start = datetime.fromisoformat(data.get("booking_start"))
         booking_end = datetime.fromisoformat(data.get("booking_end"))
 
+        overlap = Bookings.query.filter(
+            Bookings.pc_id == pcid,
+            Bookings.booking_start < booking_end,
+            Bookings.booking_end > booking_start
+        ).first()
+        if overlap:
+            return {"success": False, "message": "This PC is already booked during that time."}, 409
+
         new_booking = Bookings(userid=userid, pc_id=pcid, booking_start=booking_start, booking_end=booking_end, creation_date=datetime.now())
         db.session.add(new_booking)
         db.session.commit()
-        
+
         return {"success": True, "message": "booking was saved!"}, 201
     except Exception as e:
         return {"success": False, "message": str(e)}, 400
@@ -722,24 +758,9 @@ def api_booking_delete(bookingid):
     except Exception as e:
         return {"success": False, "message": "invalid logged in user!"}
 
-# DEBUG ENDPOINTS
-@app.route("/api/test", methods=["GET"])
-def api_test():
-    users = User.query.all()
-    user_list = []
-    for user in users:
-        user_list.append({
-            "id": user.id,
-            "fornavn": user.fornavn,
-            "efternavn": user.efternavn,
-            "email": user.email,
-            "brugernavn": user.brugernavn,
-            "adgangskode": user.adgangskode
-        })
-    return {"users": user_list}
-
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+        check_existing_items()
     scheduler.start()
-    socketio.run(app, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5000)

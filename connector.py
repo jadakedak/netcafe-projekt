@@ -64,7 +64,7 @@ def message(msg):
 
 def handle_command(command):
     if command == "OFF":
-        print("computer is turning off!")
+        os.system("shutdown -f")
     elif command == "ON":
         print("computer is turning on!")
 
@@ -78,6 +78,6 @@ def command(command):
             return {"success": True, "message": "command was executed!"}
         except Exception as e:
             return {"success": False, "message": "command execution failed", "error": str(e)}
-    
+
 sio.connect("http://localhost:5000")
 sio.wait()

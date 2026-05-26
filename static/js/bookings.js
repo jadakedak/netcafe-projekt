@@ -2,6 +2,8 @@ let today;
 let currentWeekMonday;
 let month_display = document.getElementById("month-label")
 
+let week_skips = 0
+
 function month_num_to_string(month_index){
     const months = ["January","February","March","April","May","June","July","August","September","October","November","December"]
     return months[month_index - 1]
@@ -149,6 +151,15 @@ document.getElementById("submit-btn").addEventListener("click", async () => {
     const booking_start = document.getElementById("booking-start").value
     const booking_end   = document.getElementById("booking-end").value
 
+    if(new Date(`${booking_date}T${booking_start}`) < new Date()){
+        alert("Cannot make a booking in the past.")
+        return
+    }
+    if(new Date(`${booking_date}T${booking_end}`) <= new Date(`${booking_date}T${booking_start}`)){
+        alert("End time must be after start time.")
+        return
+    }
+
     const response = await fetch("/api/bookings/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -164,6 +175,8 @@ document.getElementById("submit-btn").addEventListener("click", async () => {
         alert(data.message)
         return
     }
+    const to_day = new Date()
+    updateUI(to_day)
     renderBookingsForWeek()
 })
 
@@ -190,12 +203,20 @@ function updateUI(week_update){
 }
 
 document.getElementById("prev-week").addEventListener("click", () => {
+    if(week_skips <= -3){
+        return;
+    }
     updateUI(getPreviousweek())
     renderBookingsForWeek()
+    week_skips -= 1
 })
 document.getElementById("next-week").addEventListener("click", () => {
+    if(week_skips >= 3){
+        return;
+    }
     updateUI(getNextweek())
     renderBookingsForWeek()
+    week_skips += 1
 })
 
 document.addEventListener("DOMContentLoaded", () => {

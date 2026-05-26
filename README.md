@@ -23,5 +23,4 @@ sudo systemctl start netcafe_cloudbackup
 sudo systemctl status netcafe_cloudbackup
 
 
-
 HUSK: download visual studio code extension: "SQLite Viewer"
