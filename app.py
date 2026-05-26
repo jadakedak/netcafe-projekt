@@ -76,6 +76,7 @@ class Bookings(db.Model):
     booking_end   = db.Column(db.DateTime, nullable=False)
     creation_date = db.Column(db.DateTime, nullable=False)
 
+
 # SOCKET IO ENDPOINTS
 @socketio.on('connect')
 def handle_connect():
@@ -307,7 +308,9 @@ def home(userid):
 
 @app.route("/<userid>/admin", methods=["GET"])
 def admin(userid):
-    if not 'user_id' in session or session['user_id'] != userid:
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    if session['user_id'] != userid:
         return redirect(url_for("login"))
     user = User.query.filter_by(userid=userid).first()
     if not user or not user.admin:
@@ -317,7 +320,9 @@ def admin(userid):
 
 @app.route("/<userid>/profile", methods=["GET"])
 def profile(userid):
-    if not 'user_id' in session or session['user_id'] != userid:
+    if not 'user_id' in session: 
+        return redirect(url_for("login"))
+    if session['user_id'] != userid:
         return redirect(url_for("login"))
     user = User.query.filter_by(userid=userid).first()
     if not user:
@@ -327,29 +332,38 @@ def profile(userid):
 
 @app.route("/<userid>/creditshop", methods=["GET"])
 def creditshop(userid):
-    if not 'user_id' in session or session['user_id'] != userid:
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    if session['user_id'] != userid:
         return redirect(url_for("login"))
     user = User.query.filter_by(userid=userid).first()
     return render_template("/creditshop.html", headline="Credits shop", userid=userid, is_admin=user.admin)
 
 @app.route("/<userid>/menu", methods=["GET"])
 def menu(userid):
-    if not 'user_id' in session or session['user_id'] != userid:
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    if session['user_id'] != userid:
         return redirect(url_for("login"))
     user = User.query.filter_by(userid=userid).first()
     return render_template("menu.html", userid=userid, headline="menu", is_admin=user.admin)
 
 @app.route("/<userid>/cart", methods=["GET"])
 def cart(userid):
-    if not 'user_id' in session or session['user_id'] != userid:
+    if not 'user_id' in session:
         return redirect(url_for("login"))
+    if session['user_id'] != userid:
+        return redirect(url_for("login"))
+   
     if not session.get("cart"):
         session["cart"] = {}
     return render_template("/cart.html", headline="Cart", userid=userid, cart=session["cart"])
 
 @app.route("/<userid>/bookings")
 def bookings(userid):
-    if not 'user_id' in session or session['user_id'] != userid:
+    if not 'user_id' in session:
+        return redirect(url_for("login"))
+    if session['user_id'] != userid:
         return redirect(url_for("login"))
     user = User.query.filter_by(userid=userid).first()
     computers = Computer.query.all()
@@ -636,9 +650,11 @@ def api_add_menu_item():
 
     return {"success": True, "message": "Menu item added successfully", "item_id": item_id}, 201
 
-@app.route("/api/menu/items/remove/<item_id>", methods=["DELETE"])
-def api_remove_menu_item(item_id):
+@app.route("/api/menu/items/remove/<userid>/<item_id>", methods=["DELETE"])
+def api_remove_menu_item(userid, item_id):
     if not 'user_id' in session:
+        return {"message": "Unauthorized"}, 401
+    if userid != session["user_id"]:
         return {"message": "Unauthorized"}, 401
     if not User.query.filter_by(userid=session['user_id']).first().admin:
         return {"message": "Unauthorized"}, 401
@@ -654,13 +670,14 @@ def api_remove_menu_item(item_id):
 
 @app.route("/api/menu/items/edit/<item_id>", methods=["PUT"])
 def api_edit_menu_item(item_id):
+    data = request.get_json()
     if not 'user_id' in session:
         return {"message": "Unauthorized"}, 401
     if not User.query.filter_by(userid=session['user_id']).first().admin:
         return {"message": "Unauthorized"}, 401
+    if data.get("userid") != session["user_id"]:
+        return {"message": "Unauthorized"}, 401
 
-    data = request.get_json()
-    print(data)
     item = Menuitem.query.filter_by(item_id=item_id).first()
     if not item:
         return {"success": False, "message": "Menu item not found"}, 404
@@ -695,22 +712,15 @@ def api_get_computers():
     )
     return {"success": True, "computers": computer_list}
 
-@app.route("/api/computers/broadcast", methods=["POST"])
-def api_computers_broadcast():
-    data = request.get_json()
-    try:
-        socketio.emit("broadcast", data["message"])
-        return {"success": True, "message": "broadcast message was sent!"}, 200
-    except Exception as e:
-        return {"success": False, "message": f"Broadcast Failed: {str(e)}"}, 400
-
 @app.route("/api/computers/send", methods=["POST"])
 def api_computers_send():
+    data = request.get_json()
     if not 'user_id' in session:
         return redirect(url_for("login"))
     if not User.query.filter_by(userid=session['user_id']).first().admin:
         return {"message": "Unauthorized"}, 401
-    data = request.get_json()
+    if data.get("userid") != session["user_id"]:
+        return {"message": "Unauthorized"}, 401
     
     target_id = data.get("target")
     type = data.get("type")
@@ -725,6 +735,8 @@ def api_bookings_add():
         return redirect(url_for("login"))
     data = request.get_json()
     try:
+        if data.get("userid") != session["user_id"]:
+            return {"success": False, "message": "Unauthorized"}, 401
         userid = data.get("userid")
         pcid = data.get("computer_id")
         booking_start = datetime.fromisoformat(data.get("booking_start"))
@@ -745,12 +757,14 @@ def api_bookings_add():
         return {"success": True, "message": "booking was saved!"}, 201
     except Exception as e:
         return {"success": False, "message": str(e)}, 400
-    
-@app.route("/api/bookings/delete/<bookingid>", methods=["DELETE"])
-def api_booking_delete(bookingid):
+
+@app.route("/api/bookings/delete/<userid>/<bookingid>", methods=["DELETE"])
+def api_booking_delete(userid, bookingid):
     try:
         if not 'user_id' in session:
             return redirect(url_for("login"))
+        if userid != session["user_id"]:
+            return {"success": False, "message": "Unauthorized"}, 401
         booking_to_delete = Bookings.query.filter_by(id=bookingid).first()
         db.session.delete(booking_to_delete)
         db.session.commit()

@@ -33,6 +33,7 @@ function getPreviousweek(){
     today.setDate(today.getDate() - 7)
     return getCurrentWeekDates(today)
 }
+
 function getCurrentWeekDates(date) {
     const day = date.getDay()
     const monday = new Date(date)
@@ -65,6 +66,7 @@ function createComputerSelects(){
         document.getElementById("computer-select").appendChild(option)
     }
 }
+
 function renderBookingsForWeek() {
     document.querySelectorAll('.booking-block').forEach(el => el.remove())
 
@@ -129,7 +131,7 @@ document.getElementById("edit-close-btn").addEventListener("click", () => {
 })
 document.getElementById("edit-delete-btn").addEventListener("click", async () => {
     let bookingid = document.getElementById("booking-id").textContent
-    const response = await fetch(`/api/bookings/delete/${bookingid}`, {
+    const response = await fetch(`/api/bookings/delete/${userid}/${bookingid}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json"

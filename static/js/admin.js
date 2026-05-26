@@ -182,7 +182,7 @@ async function addMenuItemDB(navn, beskrivelse, billede_sti, pris) {
     return data;
 }
 async function removeMenuItemDB(item_id) {
-    const response = await fetch(`/api/menu/items/remove/${item_id}`, {
+    const response = await fetch(`/api/menu/items/remove/${userid}/${item_id}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json"
@@ -233,6 +233,7 @@ async function editMenuItem(item_id){
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
+            userid: userid,
             navn: navn.value,
             beskrivelse: description.value,
             billede_sti: picture_path.value,
@@ -281,6 +282,7 @@ async function sendComputerMsg(target, type, message){
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
+            "userid": userid,
             "target": target, 
             "type": type, 
             "message": message
