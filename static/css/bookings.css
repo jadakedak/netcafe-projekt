@@ -1,4 +1,4 @@
-﻿* {
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -27,11 +27,6 @@ body {
     font-size: 0.88rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s;
-}
-
-#new-booking-btn:hover {
-    background: #6d28d9;
 }
 
 .calendar-nav {
@@ -49,12 +44,6 @@ body {
     padding: 4px 12px;
     cursor: pointer;
     font-size: 1rem;
-    transition: background 0.15s, color 0.15s;
-}
-
-.calendar-nav button:hover {
-    background: #1e1e1e;
-    color: #fff;
 }
 
 #month-label {
@@ -131,9 +120,11 @@ body {
 #booking-edit-window {
     display: none;
     position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.6);
     z-index: 100;
     align-items: center;
     justify-content: center;
@@ -190,10 +181,6 @@ body {
     color: #fca5a5;
 }
 
-#edit-delete-btn:hover {
-    background: #991b1b;
-}
-
 .booking-block {
     position: absolute;
     left: 2px;
@@ -203,7 +190,6 @@ body {
     font-size: 0.7rem;
     overflow: hidden;
     cursor: pointer;
-    transition: background 0.15s;
 }
 
 .day-name {
@@ -260,9 +246,11 @@ body {
 .modal-overlay {
     display: none;
     position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.6);
     z-index: 100;
     align-items: center;
     justify-content: center;
@@ -313,7 +301,6 @@ body {
     font-size: 0.9rem;
     font-family: inherit;
     outline: none;
-    transition: border-color 0.15s;
 }
 
 .form-field input:focus {
@@ -333,7 +320,6 @@ body {
     font-size: 0.88rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s;
 }
 
 #cancel-btn {
@@ -341,16 +327,7 @@ body {
     color: #9ca3af;
 }
 
-#cancel-btn:hover {
-    background: #333;
-    color: #fff;
-}
-
 #submit-btn {
     background: #7c3aed;
     color: #fff;
-}
-
-#submit-btn:hover {
-    background: #6d28d9;
 }

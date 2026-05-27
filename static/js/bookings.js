@@ -131,11 +131,14 @@ document.getElementById("edit-close-btn").addEventListener("click", () => {
 })
 document.getElementById("edit-delete-btn").addEventListener("click", async () => {
     let bookingid = document.getElementById("booking-id").textContent
-    const response = await fetch(`/api/bookings/delete/${userid}/${bookingid}`, {
+    const response = await fetch(`/api/bookings/delete/${bookingid}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json"
-        }
+        },
+        body: JSON.stringify({
+            userid: userid
+        })
     })
     const data = await response.json()
     if(!data.success){

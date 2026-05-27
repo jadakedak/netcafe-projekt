@@ -14,11 +14,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-### TODO: 
-# - bookings.js har brug for error handling
-# - tilføj sorting i menu'en så man kan sortere mellem drinks og mad
-# - tilføj kryptering af passwords så databasen kun har den krypteret version af passwordet
-
 app = Flask(__name__)
 app.secret_key = "myassisonfire"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
@@ -76,7 +71,6 @@ class Bookings(db.Model):
     booking_end   = db.Column(db.DateTime, nullable=False)
     creation_date = db.Column(db.DateTime, nullable=False)
 
-
 # SOCKET IO ENDPOINTS
 @socketio.on('connect')
 def handle_connect():
@@ -126,37 +120,8 @@ def handle_message(msg):
     else:
         print(f"Received message: {msg}")
 
-# USER FUNCTIONS
-def remove_user(user_id):
-    user = User.query.get(user_id)
-    if user:
-        db.session.delete(user)
-        db.session.commit()
-        return True
-    return False
-
-def get_user_by_email(email):
-    return User.query.filter_by(email=email).first()
-
 def get_user_by_username(username):
     return User.query.filter_by(brugernavn=username).first()
-
-def clear_users():
-    num_rows_deleted = db.session.query(User).delete()
-    db.session.commit()
-    return num_rows_deleted
-
-# MENUITEM FUNCTIONS
-def remove_menuitem(item_id):
-    item = Menuitem.query.get(item_id)
-    if item:
-        db.session.delete(item)
-        db.session.commit()
-        return True
-    return False
-
-def get_menuitems():
-    return Menuitem.query.all()
 
 # this checks if the items in menu.json is not in the database, if so, add them
 def check_existing_items():
@@ -180,13 +145,19 @@ def check_existing_items():
     db.session.commit()
     print(f"get_existing_items: added {added} new item(s) from menu.json")
 
-# TRANSACTION FUNCTIONS
-def generate_Tansid(length):
+def generate_Transid(length):
     id = ""
     chars = "ABCDEFGHIJKLMNOPQRSTUVXYZ1234567890"
     for i in range(length):
         id += chars[randint(0, len(chars) - 1)]
     return id
+
+def authenticate(userid):
+    if not 'user_id' in session:
+        return False
+    if userid == session["user_id"]:
+        return True
+    return False
 
 @scheduler.scheduled_job("cron", hour=12, minute=0)
 def cloud_backup():
@@ -275,7 +246,6 @@ def cloud_backup():
         except Exception as e:
             print("cloud backup: error occured " + str(e))
 
-# this is for checking if the user is logged in on the frontend, can be used to conditionally render elements based on login status
 @app.route('/api/me')
 def me():
     if 'user_id' in session:
@@ -406,7 +376,6 @@ def register():
 def login():
     return render_template("login.html")
 
-
 # USER API ENDPOINTS
 @app.route("/api/register", methods=["POST"])
 def api_register():
@@ -440,7 +409,7 @@ def api_login():
         session['user_id'] = user.userid
         return {"success": True, "user_id": user.userid}, 200
     return {"message": "Invalid username or password"}, 401
- 
+
 # BUYING ENDPOINTS
 @app.route("/api/buy/credits", methods=["POST"])
 def buy_credits():
@@ -469,7 +438,7 @@ def checkout():
     if user.credits < price_total:
         return {"success": False, "message": "Insufficient credits"}
 
-    transid = generate_Tansid(10)
+    transid = generate_Transid(10)
     user.credits -= price_total
     session["cart"] = {}
 
@@ -505,12 +474,12 @@ def api_users():
     return {"users": user_list}, 200
 
 @app.route("/api/profileinfo", methods=["GET"])
-def api_profileinfo():    
-    if not 'user_id' in session:
-        return {"message": "Unauthorized"}, 401
-    
+def api_profileinfo():            
     data = request.get_json()
     userid = data.get("userid")    
+    if not authenticate(userid):
+        return {"message": "Unauthorized"}, 401
+    
     user = User.query.filter_by(userid=userid).first()
     if not user:
         return {"message": "User not found"}, 404
@@ -520,13 +489,14 @@ def api_profileinfo():
 # TRANSACTION ENDPOINTS
 @app.route("/api/transactions/insert", methods=["POST"])
 def insert_transaction():
-    if not 'user_id' in session:
-        return redirect(url_for("login"))
     try:
         data = request.get_json()
-        
         userid  = session["user_id"]
-        transid = generate_Tansid(10)
+        
+        if not authenticate(userid):
+            return {"message": "Unauthorized"}, 401
+        
+        transid = generate_Transid(10)
         item    = data.get("item")
         amount  = data.get("amount")
         total   = data.get("total")
@@ -570,7 +540,7 @@ def api_menu_items():
 @app.route("/api/menu/add_cart/<itemid>", methods=["PUT"])
 def add_cart(itemid):
     if not 'user_id' in session:
-        return redirect(url_for("login"))
+        return {"message": "Unauthorized"}, 401
     try:
         cart = session.get("cart", {})
         cart[itemid] = cart.get(itemid, 0) + 1
@@ -652,13 +622,11 @@ def api_add_menu_item():
 
 @app.route("/api/menu/items/remove/<userid>/<item_id>", methods=["DELETE"])
 def api_remove_menu_item(userid, item_id):
-    if not 'user_id' in session:
-        return {"message": "Unauthorized"}, 401
-    if userid != session["user_id"]:
-        return {"message": "Unauthorized"}, 401
-    if not User.query.filter_by(userid=session['user_id']).first().admin:
+    if not authenticate(userid):
         return {"message": "Unauthorized"}, 401
 
+    if not User.query.filter_by(userid=session['user_id']).first().admin:
+        return {"message": "Unauthorized"}, 401
     item = Menuitem.query.filter_by(item_id=item_id).first()
     if not item:
         return {"message": "Menu item not found"}, 404
@@ -671,12 +639,11 @@ def api_remove_menu_item(userid, item_id):
 @app.route("/api/menu/items/edit/<item_id>", methods=["PUT"])
 def api_edit_menu_item(item_id):
     data = request.get_json()
-    if not 'user_id' in session:
+    if not authenticate(data.get("userid")):
         return {"message": "Unauthorized"}, 401
     if not User.query.filter_by(userid=session['user_id']).first().admin:
         return {"message": "Unauthorized"}, 401
-    if data.get("userid") != session["user_id"]:
-        return {"message": "Unauthorized"}, 401
+
 
     item = Menuitem.query.filter_by(item_id=item_id).first()
     if not item:
@@ -715,11 +682,9 @@ def api_get_computers():
 @app.route("/api/computers/send", methods=["POST"])
 def api_computers_send():
     data = request.get_json()
-    if not 'user_id' in session:
-        return redirect(url_for("login"))
-    if not User.query.filter_by(userid=session['user_id']).first().admin:
+    if not authenticate(data.get("userid")):
         return {"message": "Unauthorized"}, 401
-    if data.get("userid") != session["user_id"]:
+    if not User.query.filter_by(userid=session['user_id']).first().admin:
         return {"message": "Unauthorized"}, 401
     
     target_id = data.get("target")
@@ -731,11 +696,9 @@ def api_computers_send():
 
 @app.route("/api/bookings/add", methods=["POST"])
 def api_bookings_add():
-    if not 'user_id' in session:
-        return redirect(url_for("login"))
     data = request.get_json()
     try:
-        if data.get("userid") != session["user_id"]:
+        if not authenticate(data.get("userid")):
             return {"success": False, "message": "Unauthorized"}, 401
         userid = data.get("userid")
         pcid = data.get("computer_id")
@@ -758,14 +721,13 @@ def api_bookings_add():
     except Exception as e:
         return {"success": False, "message": str(e)}, 400
 
-@app.route("/api/bookings/delete/<userid>/<bookingid>", methods=["DELETE"])
-def api_booking_delete(userid, bookingid):
+
+@app.route("/api/bookings/delete/<bookingid>", methods=["DELETE"])
+def api_booking_delete(bookingid):
     try:
-        if not 'user_id' in session:
-            return redirect(url_for("login"))
-        if userid != session["user_id"]:
-            return {"success": False, "message": "Unauthorized"}, 401
         booking_to_delete = Bookings.query.filter_by(id=bookingid).first()
+        if authenticate(booking_to_delete.userid):
+            return {"success": False, "message": "Unauthorized"}, 401
         db.session.delete(booking_to_delete)
         db.session.commit()
         return {"success": True, "message": "Booking was deleted!"}
@@ -777,4 +739,4 @@ if __name__ == "__main__":
         db.create_all()
         check_existing_items()
     scheduler.start()
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app, debug=True)

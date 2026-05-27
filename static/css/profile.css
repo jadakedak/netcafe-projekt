@@ -28,16 +28,6 @@ body {
     letter-spacing: 0.5px;
 }
 
-.header h1::after {
-    content: '';
-    display: block;
-    width: 60px;
-    height: 3px;
-    background: #7c3aed;
-    border-radius: 2px;
-    margin: 10px auto 0;
-}
-
 .profile-info {
     background: #1a1a1a;
     border: 1px solid #2a2a2a;
@@ -80,7 +70,6 @@ body {
     color: #f0f0f0;
     font-weight: 400;
     text-align: right;
-    word-break: break-all;
 }
 
 #transaction-history {
@@ -115,11 +104,6 @@ body {
     padding: 14px 20px;
     width: 100%;
     gap: 16px;
-    transition: border-color 0.2s;
-}
-
-.transaction-container:hover {
-    border-color: #7c3aed;
 }
 
 .transaction-item {

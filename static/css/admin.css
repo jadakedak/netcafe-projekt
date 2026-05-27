@@ -59,18 +59,12 @@ body {
     font-weight: 500;
     cursor: pointer;
     text-align: left;
-    transition: background 0.15s, color 0.15s;
 }
 
 .sidebar-item svg {
     width: 16px;
     height: 16px;
     flex-shrink: 0;
-}
-
-.sidebar-item:hover {
-    background: #1e1e1e;
-    color: #e0e0e0;
 }
 
 .sidebar-item.active {
@@ -130,7 +124,6 @@ body {
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s;
 }
 
 #add-menu-item svg {
@@ -139,15 +132,13 @@ body {
     flex-shrink: 0;
 }
 
-#add-menu-item:hover {
-    background: #6d28d9;
-}
-
 .modal-overlay {
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
     z-index: 200;
     align-items: center;
     justify-content: center;
@@ -192,13 +183,6 @@ body {
     display: flex;
     align-items: center;
     border-radius: 6px;
-    transition: color 0.15s, background 0.15s;
-}
-
-#close-form-button:hover,
-#close-edit-form-button:hover {
-    color: #ffffff;
-    background: #2a2a2a;
 }
 
 #close-form-button svg,
@@ -238,7 +222,6 @@ body {
     font-size: 0.9rem;
     font-family: inherit;
     outline: none;
-    transition: border-color 0.15s;
     width: 100%;
 }
 
@@ -268,13 +251,7 @@ body {
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s;
     margin-top: 4px;
-}
-
-#submit-menu-item:hover,
-#submit-edit-menu-item:hover {
-    background: #6d28d9;
 }
 
 #user_list,
@@ -294,12 +271,6 @@ body {
     background: #1a1a1a;
     border: 1px solid #2a2a2a;
     border-radius: 10px;
-    transition: border-color 0.15s, background 0.15s;
-}
-
-.menu-item-container:hover {
-    background: #222222;
-    border-color: #7c3aed;
 }
 
 .menu-item-picture {
@@ -316,7 +287,6 @@ body {
     flex-direction: column;
     gap: 4px;
     flex: 1;
-    min-width: 0;
 }
 
 .menu-item-name {
@@ -351,17 +321,11 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: background 0.15s, color 0.15s;
 }
 
 .edit-menu-item svg {
     width: 16px;
     height: 16px;
-}
-
-.edit-menu-item:hover {
-    background: rgba(124, 58, 237, 0.1);
-    color: #7c3aed;
 }
 
 .remove-menu-item {
@@ -375,18 +339,12 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: background 0.15s, color 0.15s;
     margin-left: auto;
 }
 
 .remove-menu-item svg {
     width: 16px;
     height: 16px;
-}
-
-.remove-menu-item:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
 }
 
 .user-item {
@@ -399,13 +357,6 @@ body {
     border-radius: 10px;
     font-size: 0.92rem;
     color: #e0e0e0;
-    cursor: default;
-    transition: border-color 0.15s, background 0.15s;
-}
-
-.user-item:hover {
-    background: #222222;
-    border-color: #7c3aed;
 }
 
 .user-avatar {
@@ -420,7 +371,6 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    letter-spacing: 0.5px;
     text-transform: uppercase;
 }
 
@@ -460,19 +410,10 @@ body {
     border-radius: 10px;
     font-size: 0.92rem;
     color: #e0e0e0;
-    cursor: default;
-    transition: border-color 0.15s, background 0.15s;
-}
-
-.admin-item:hover {
-    background: #221f10;
-    border-color: #f59e0b;
-    border-left-color: #f59e0b;
 }
 
 .admin-item .user-avatar {
     background: #b45309;
-    box-shadow: 0 0 0 2px #f59e0b;
 }
 
 .admin-item .user-username {
@@ -501,11 +442,6 @@ body {
     background: #1a1a1a;
     border: 1px solid #2a2a2a;
     border-radius: 10px;
-    transition: background 0.15s;
-}
-
-[class^="computer-item-"]:hover {
-    background: #1f1f1f;
 }
 
 .computer-item-status {
@@ -513,7 +449,6 @@ body {
     height: 8px;
     border-radius: 50%;
     background: #22c55e;
-    box-shadow: 0 0 6px #22c55e;
     flex-shrink: 0;
 }
 
@@ -522,7 +457,6 @@ body {
     flex-direction: column;
     gap: 2px;
     flex: 1;
-    min-width: 0;
 }
 
 .computer-item-navn {
@@ -555,15 +489,7 @@ body {
     color: #6b7280;
     font-size: 0.75rem;
     font-weight: 600;
-    letter-spacing: 0.4px;
     padding: 4px 10px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-
-.computer-item-offbtn:hover {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: #ef4444;
-    color: #ef4444;
 }

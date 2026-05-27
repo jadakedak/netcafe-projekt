@@ -57,13 +57,11 @@ input {
     border-radius: 8px;
     font-size: 0.95rem;
     color: #1a1a2e;
-    transition: border-color 0.2s;
     outline: none;
 }
 
 input:focus {
     border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 
 input::placeholder {
@@ -81,11 +79,6 @@ input::placeholder {
     font-weight: 600;
     cursor: pointer;
     margin-top: 8px;
-    transition: background-color 0.2s;
-}
-
-#btn-submit:hover {
-    background-color: #4338ca;
 }
 
 .login-link {
@@ -101,26 +94,21 @@ input::placeholder {
     font-weight: 600;
 }
 
-.login-link a:hover {
-    text-decoration: underline;
-}
-
 #success-overlay {
+    display: none;
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     background-color: rgba(0, 0, 0, 0.4);
-    display: flex;
     justify-content: center;
     align-items: center;
     z-index: 100;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
 }
 
 #success-overlay.visible {
-    opacity: 1;
-    pointer-events: all;
+    display: flex;
 }
 
 #success-box {
@@ -167,9 +155,4 @@ input::placeholder {
     text-decoration: none;
     font-weight: 600;
     font-size: 0.95rem;
-    transition: background-color 0.2s;
-}
-
-#success-btn:hover {
-    background-color: #4338ca;
 }

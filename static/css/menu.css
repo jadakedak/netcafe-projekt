@@ -24,14 +24,7 @@ body {
     border: 1px solid #2a2a2a;
     border-radius: 7px;
     background: #1a1a1a;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
     z-index: 100;
-}
-
-#home-button:hover {
-    background: #222222;
-    color: #ffffff;
-    border-color: #7c3aed;
 }
 
 #go-to-cart {
@@ -46,23 +39,13 @@ body {
     border-radius: 8px;
     padding: 8px 14px;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
     z-index: 100;
-}
-
-#go-to-cart:hover {
-    background: #222222;
-    border-color: #7c3aed;
 }
 
 #go-to-cart svg {
     width: 18px;
     height: 18px;
     color: #9ca3af;
-}
-
-#go-to-cart:hover svg {
-    color: #a78bfa;
 }
 
 #item-count {
@@ -90,12 +73,6 @@ body {
     background: #1a1a1a;
     border: 1px solid #2a2a2a;
     border-radius: 10px;
-    transition: border-color 0.15s, background 0.15s;
-}
-
-.menu-item-container:hover {
-    background: #222222;
-    border-color: #7c3aed;
 }
 
 .menu-item-picture {
@@ -112,7 +89,6 @@ body {
     flex-direction: column;
     gap: 4px;
     flex: 1;
-    min-width: 0;
 }
 
 .menu-item-name {
@@ -147,15 +123,9 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: background 0.15s, color 0.15s;
 }
 
 .menu-item-add-cart svg {
     width: 16px;
     height: 16px;
-}
-
-.menu-item-add-cart:hover {
-    background: rgba(124, 58, 237, 0.1);
-    color: #7c3aed;
 }

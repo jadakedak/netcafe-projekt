@@ -26,8 +26,7 @@ body {
     align-items: center;
     gap: 8px;
     padding: 14px 28px;
-    background: rgba(13, 13, 13, 0.85);
-    backdrop-filter: blur(8px);
+    background: #0d0d0d;
     border-bottom: 1px solid #1e1e1e;
     z-index: 100;
 }
@@ -39,8 +38,6 @@ body {
     font-size: 1.2rem;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: -0.3px;
-    pointer-events: none;
 }
 
 .topbar a {
@@ -52,13 +49,6 @@ body {
     border: 1px solid #2a2a2a;
     border-radius: 7px;
     background: #1a1a1a;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-
-.topbar a:hover {
-    background: #222222;
-    color: #ffffff;
-    border-color: #7c3aed;
 }
 
 .topbar a[href$="/profile"] {
@@ -75,11 +65,3 @@ body {
     border-color: #7c3aed;
     color: #ffffff;
 }
-
-.topbar a[href$="/profile"]:hover {
-    background: #6d28d9;
-    border-color: #6d28d9;
-    color: #ffffff;
-}
-
-
