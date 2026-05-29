@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "myassisonfire"
+app.secret_key = "mysupersecretkey"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 CORS(app)
 
@@ -43,7 +43,7 @@ class Menuitem(db.Model):
     item_id     = db.Column(db.String(50), unique=True, nullable=False)
     navn        = db.Column(db.String(100), nullable=False)
     beskrivelse = db.Column(db.String(500), nullable=False)
-    billede_sti = db.Column(db.String(200), nullable=True)  # URL til billede (kunne være på fil server)
+    billede_sti = db.Column(db.String(200), nullable=True)
     pris        = db.Column(db.Float, nullable=False)
 
 class Computer(db.Model):
@@ -71,7 +71,6 @@ class Bookings(db.Model):
     booking_end   = db.Column(db.DateTime, nullable=False)
     creation_date = db.Column(db.DateTime, nullable=False)
 
-# SOCKET IO ENDPOINTS
 @socketio.on('connect')
 def handle_connect():
     print(f"Client connected: {request.sid}")
@@ -123,7 +122,6 @@ def handle_message(msg):
 def get_user_by_username(username):
     return User.query.filter_by(brugernavn=username).first()
 
-# this checks if the items in menu.json is not in the database, if so, add them
 def check_existing_items():
     json_path = path.join(app.static_folder, "menu.json")
     with open(json_path, "r", encoding="utf-8") as f:
@@ -165,14 +163,12 @@ def cloud_backup():
         ip = environ.get("CLOUD_SERVER_IP")
         port = environ.get("CLOUD_SERVER_PORT")
 
-        # GET THE DATA
         users = User.query.all()
         menuitems = Menuitem.query.all()
         computers = Computer.query.all()
         transactions = Transactions.query.all()
         bookings = Bookings.query.all()
         
-        # SERIALIZE THE DATA
         Consolidict = {}
         
         users_dict = {}
@@ -233,7 +229,6 @@ def cloud_backup():
         Consolidict["transactions"] = transactions_dict
         Consolidict["bookings"] = bookings_dict
 
-        # SEND THE DATA
         try:
             response = post(
                 f"http://{ip}:{port}/api/data",
@@ -262,7 +257,7 @@ def landing_page():
     session.clear()
     return {"message": "session is cleared!"}
 
-# ENDPOINTS
+
 @app.route("/<userid>/home", methods=["GET"])
 def home(userid):
     is_admin = False
@@ -376,7 +371,6 @@ def register():
 def login():
     return render_template("login.html")
 
-# USER API ENDPOINTS
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json()
@@ -410,7 +404,6 @@ def api_login():
         return {"success": True, "user_id": user.userid}, 200
     return {"message": "Invalid username or password"}, 401
 
-# BUYING ENDPOINTS
 @app.route("/api/buy/credits", methods=["POST"])
 def buy_credits():
     data = request.get_json()
@@ -486,7 +479,6 @@ def api_profileinfo():
     return user, 200
 
 
-# TRANSACTION ENDPOINTS
 @app.route("/api/transactions/insert", methods=["POST"])
 def insert_transaction():
     try:
@@ -519,7 +511,6 @@ def transaction_history():
     except Exception:
         return {"success": False, "message": "failed to load transactions!"}
 
-# MENU API ENDPOINTS
 @app.route("/api/menu/items", methods=["GET"])
 def api_menu_items():
     if not 'user_id' in session:
@@ -599,7 +590,6 @@ def get_cart():
     except:
         return {"success": False, "cart": []}
 
-# MENU:ADMIN ONLY
 @app.route("/api/menu/items/add", methods=["POST"])
 def api_add_menu_item():
     if not 'user_id' in session:
@@ -608,7 +598,7 @@ def api_add_menu_item():
         return {"message": "Unauthorized"}, 401
 
     data = request.get_json()
-    item_id = str(uuid4())  # Generate a unique item ID
+    item_id = str(uuid4())
     navn = data.get("navn")
     beskrivelse = data.get("beskrivelse")
     pris = data.get("pris")

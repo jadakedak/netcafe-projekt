@@ -2,13 +2,10 @@ import socketio
 import os
 from random import choice
 
-# THIS IS THE SCRIPT THAT RUNS ON THE COMPUTERS 
-# THAT ARE PART OF THE NETCAFÉ
-
 sio = socketio.Client()
 id_path = os.path.join(os.environ["PROGRAMDATA"], "Netcafe", "id.txt")
 
-PING_TIMEOUT_SECONDS = 300 # Every 5 minutes I.E 300 seconds
+PING_TIMEOUT_SECONDS = 300
 
 def generateid(length=16):
     chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

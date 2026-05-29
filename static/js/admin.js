@@ -1,7 +1,6 @@
 const user_container = document.getElementById("user_list");
 const admin_container = document.getElementById("admin_user_list");
 
-// User admin handling
 async function getUsers(){
     const response = await fetch("/api/users", {
         method: "GET",
@@ -48,7 +47,6 @@ async function displayUsers(){
     });
 }
 
-// Menu admin Handling
 const menu_form = document.getElementById("menu_item_form");
 
 const add_button = document.getElementById("add-menu-item")
@@ -77,7 +75,6 @@ e.preventDefault();
         return alert("Navn, beskrivelse og gyldig pris er påkrævet!");
     }
 
-    // adding a new menu item
     const item_details = await addMenuItemDB(navn, beskrivelse, billede_sti, pris);
     const menuItem = createMenuItem(item_details["item_id"], navn, beskrivelse, billede_sti, pris);
     document.getElementById("menu_list").appendChild(menuItem);
@@ -96,7 +93,6 @@ submit_edit_menu_item.addEventListener("click", async (e) => {
     document.getElementById("edit_menu_item_form").style.display = "none"
 })
 
-// creates the menu item container along with the elements
 function createMenuItem(item_id, navn, beskrivelse, billede_sti, pris){
     const item_container = document.createElement("div")
     item_container.classList.add("menu-item-container")
@@ -121,14 +117,6 @@ function createMenuItem(item_id, navn, beskrivelse, billede_sti, pris){
     picture.classList.add("menu-item-picture")
     picture.src = billede_sti
     picture.alt = navn
-    /* INFORMATION VULNERABILITY: picture.src can be set to whatever url you want
-        LEAKED INFO:
-        IP address of the client
-        User-Agent (browser, OS version)
-        Referer header (what page they were on)
-        Cookies for that domain (if the URL is on the same domain)
-        Timing (confirms the user actually loaded the page)
-    */
 
     const details = document.createElement("div")
     details.classList.add("menu-item-details")
@@ -154,7 +142,7 @@ function createMenuItem(item_id, navn, beskrivelse, billede_sti, pris){
     item_container.appendChild(remove_button)
     return item_container
 }
-// removes the menu item container
+
 function removeMenuItem(item_id){
     const item_element = document.getElementById(`menu-item-${item_id}`);
     if(item_element){
@@ -225,7 +213,6 @@ async function editMenuItem(item_id){
     const picture_path = document.getElementById("edit-item-picture")
     const price = document.getElementById("edit-item-price")
 
-    // edit an existing menu item
     const response = await fetch(`/api/menu/items/edit/${item_id}`, {
         method: "PUT",
         credentials: "include",
@@ -313,9 +300,7 @@ function createComputeritem(pcid, pcnavn, pcuser){
     off_button_obj.addEventListener("click", () => {
         sendComputerMsg(pcid, "command", "OFF")
     })
-    //setInterval(() => {
-    // maybe get it to retrieve last_seen and update it    
-    //}, 300000)
+
     container.appendChild(connected_status)
     container.appendChild(pcnavn_obj)
     container.appendChild(pcuser_obj)
